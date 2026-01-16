@@ -21,11 +21,18 @@ const resultsStorage = new Storage('results.json');
 
 // File upload configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: async (req, file, cb) => {
     const dir = file.fieldname === 'logo' 
       ? path.join(__dirname, '../../assets') 
       : path.join(__dirname, '../../uploads');
-    cb(null, dir);
+    
+    // Ensure directory exists
+    try {
+      await fs.mkdir(dir, { recursive: true });
+      cb(null, dir);
+    } catch (error) {
+      cb(error);
+    }
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
