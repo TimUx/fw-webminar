@@ -48,11 +48,14 @@ cd fw-webminar
 ```bash
 cp .env.example .env
 # .env bearbeiten und JWT_SECRET ändern
+# Optional: PUID und PGID anpassen (Standard: 1000)
 ```
 
-3. **Verzeichnisse erstellen**
+3. **Verzeichnisse erstellen und Berechtigungen setzen**
 ```bash
 mkdir -p data uploads slides assets
+# Optional: Berechtigungen für den konfigurierten Benutzer setzen
+# sudo chown -R $PUID:$PGID data uploads slides assets
 ```
 
 4. **Starten**
@@ -73,6 +76,31 @@ docker-compose up -d
 Das erste eingegebene Passwort wird zum Admin-Passwort.
 
 ## Konfiguration
+
+### Benutzer- und Gruppen-IDs (UID/GID)
+
+Alle Container können mit spezifischen Benutzer- und Gruppen-IDs ausgeführt werden. Dies ist besonders wichtig für korrekte Dateiberechtigungen auf dem Host-System.
+
+1. `.env` Datei bearbeiten:
+```bash
+# User/Group IDs für Container-Prozesse
+PUID=1000
+PGID=1000
+```
+
+2. UID/GID des aktuellen Benutzers ermitteln (optional):
+```bash
+id -u  # Zeigt UID
+id -g  # Zeigt GID
+```
+
+3. Container neu starten, damit Änderungen wirksam werden:
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+**Hinweis:** Die Standardwerte sind PUID=1000 und PGID=1000. Dies funktioniert für die meisten Benutzer. Wenn Sie Probleme mit Dateiberechtigungen haben, passen Sie diese Werte entsprechend Ihrem System an.
 
 ### SMTP E-Mail
 
