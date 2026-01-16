@@ -12,8 +12,12 @@ RUN npm ci --only=production
 COPY backend ./backend
 COPY public ./public
 
-# Create directories
-RUN mkdir -p /data /uploads /slides /assets
+# Create directories with proper permissions
+RUN mkdir -p /data /uploads /slides /assets && \
+    chown -R node:node /app /data /uploads /slides /assets
+
+# Switch to non-root user
+USER node
 
 # Expose port
 EXPOSE 3000
