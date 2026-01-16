@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Caddy reverse proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: webinar-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - backend
+    networks:
+      - webinar-network
+
+  # Node.js backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webinar-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-change-this-to-a-secure-random-string}
+      - DATA_DIR=/data
+      - UPLOADS_DIR=/uploads
+      - SLIDES_DIR=/slides
+      - ASSETS_DIR=/assets
+    volumes:
+      - ./data:/data
+      - ./uploads:/uploads
+      - ./slides:/slides
+      - ./assets:/assets
+    networks:
+      - webinar-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # LibreOffice for PPTX conversion (optional)
+  # Uncomment if you want automatic PPTX conversion
+  # libreoffice:
+  #   image: linuxserver/libreoffice:latest
+  #   container_name: webinar-libreoffice
+  #   restart: unless-stopped
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=Europe/Berlin
+  #   volumes:
+  #     - ./uploads:/uploads
+  #     - ./slides:/slides
+  #   networks:
+  #     - webinar-network
+
+networks:
+  webinar-network:
+    driver: bridge
+
+volumes:
+  caddy-data:
+  caddy-config:

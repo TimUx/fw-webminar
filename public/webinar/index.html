@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webinar Platform</title>
+  <link rel="stylesheet" href="/assets/css/webinar.css">
+</head>
+<body>
+  <header>
+    <div class="header-branding">
+      <img id="headerLogo" src="" alt="Logo" class="logo" style="display: none;">
+      <h1 id="headerTitle">Webinar Platform</h1>
+    </div>
+  </header>
+  
+  <!-- Welcome / Webinar List -->
+  <section id="welcome-section" class="welcome-section">
+    <div class="welcome-container">
+      <h2>🎓 Willkommen zur Webinar Platform</h2>
+      
+      <div class="loading" id="loadingWebinars">
+        <div class="spinner"></div>
+        <p>Lade verfügbare Webinare...</p>
+      </div>
+      
+      <div id="webinarList" class="webinar-list"></div>
+    </div>
+  </section>
+  
+  <!-- Presentation View -->
+  <section id="presentation-section" class="hidden">
+    <h2 id="webinarTitle"></h2>
+    
+    <div class="presentation-container">
+      <div class="presentation-wrapper">
+        <iframe id="presentationFrame" class="presentation-frame" src=""></iframe>
+        
+        <div class="presentation-controls">
+          <button id="prevSlideBtn" onclick="previousSlide()">◀ Zurück</button>
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="slide-counter">
+            <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
+          </div>
+          <button id="nextSlideBtn" onclick="nextSlide()">Weiter ▶</button>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <button id="startQuizBtn" onclick="startQuiz()" style="display: none;">Zum Quiz →</button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Quiz Section -->
+  <section id="quiz-section" class="hidden">
+    <h2>📝 Quiz</h2>
+    
+    <div class="quiz-container">
+      <div id="quizContent"></div>
+      
+      <div class="quiz-navigation">
+        <button id="prevQuestionBtn" onclick="previousQuestion()" style="display: none;">◀ Vorherige Frage</button>
+        <div style="flex: 1;"></div>
+        <button id="nextQuestionBtn" onclick="nextQuestion()">Nächste Frage ▶</button>
+        <button id="finishQuizBtn" onclick="finishQuiz()" style="display: none;">Quiz abschließen</button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Participant Form -->
+  <section id="participant-section" class="hidden">
+    <h2>📋 Ihre Daten</h2>
+    
+    <div class="participant-form">
+      <p style="margin-bottom: 20px;">Bitte geben Sie Ihre Daten ein, um Ihr Ergebnis zu erhalten:</p>
+      
+      <form id="participantForm">
+        <div class="form-group">
+          <label for="participantName">Vollständiger Name *</label>
+          <input type="text" id="participantName" name="name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="participantEmail">E-Mail-Adresse *</label>
+          <input type="email" id="participantEmail" name="email" required>
+        </div>
+        
+        <button type="submit">Ergebnis absenden</button>
+      </form>
+    </div>
+  </section>
+  
+  <!-- Result Section -->
+  <section id="result-section" class="hidden">
+    <div class="result-container">
+      <h2>Ergebnis</h2>
+      
+      <div class="result-box">
+        <div id="resultIcon" class="result-icon"></div>
+        <div id="resultTitle" class="result-title"></div>
+        <div id="resultScore" class="result-score"></div>
+        
+        <div class="result-details">
+          <p><strong>Korrekte Antworten:</strong> <span id="correctAnswers"></span></p>
+          <p><strong>Gesamtfragen:</strong> <span id="totalQuestions"></span></p>
+          <p><strong>Prozent:</strong> <span id="percentage"></span>%</p>
+        </div>
+        
+        <div id="resultMessage" class="result-message"></div>
+      </div>
+      
+      <button onclick="location.reload()">Zurück zur Startseite</button>
+    </div>
+  </section>
+  
+  <!-- Narration Indicator -->
+  <div id="narrationIndicator" class="narration-indicator hidden">
+    <span class="narration-icon">🔊</span>
+    <span id="narrationText">Sprachausgabe aktiv</span>
+  </div>
+  
+  <script src="/assets/js/webinar.js"></script>
+</body>
+</html>

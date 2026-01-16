@@ -1,0 +1,39 @@
+# Caddyfile - Reverse Proxy Configuration
+
+# Replace 'your-domain.com' with your actual domain
+# For local development, use 'localhost' or ':80'
+
+# For production with HTTPS:
+# your-domain.com {
+#     reverse_proxy backend:3000
+#     encode gzip zstd
+#     
+#     header {
+#         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+#         X-Content-Type-Options "nosniff"
+#         X-Frame-Options "SAMEORIGIN"
+#         Referrer-Policy "strict-origin-when-cross-origin"
+#     }
+#     
+#     log {
+#         output file /var/log/caddy/access.log
+#     }
+# }
+
+# For local development:
+:80 {
+    reverse_proxy backend:3000
+    
+    encode gzip zstd
+    
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+    
+    log {
+        output stdout
+        format console
+    }
+}

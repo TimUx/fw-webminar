@@ -1,1 +1,306 @@
-# fw.webminar
+# Webinar Platform - Self-Hosted E-Learning System
+
+Eine vollständig selbst gehostete, automatisierte Webinar- und E-Learning-Plattform mit Präsentationen, automatischer Sprachausgabe und Quiz-System.
+
+## Features
+
+✨ **Vollständig selbst gehostet** - Keine externen Abhängigkeiten  
+🐳 **Docker-basiert** - Einfache Bereitstellung mit Docker Compose  
+🔒 **Sicher** - JWT-Authentifizierung, bcrypt-Passwort-Hashing, Rate Limiting  
+📊 **Admin-Panel** - Vollständige Verwaltung von Webinaren, PPTX/PDF, Quiz und Ergebnissen  
+🎯 **Quiz-System** - Multiple-Choice-Tests mit automatischer Bewertung  
+📧 **E-Mail-Benachrichtigungen** - Automatischer Versand von Ergebnissen  
+🗣️ **Sprachausgabe** - Browser-basierte automatische Narration (Text-to-Speech)  
+🎨 **Modernes Design** - Basierend auf fw-fragenkatalog Design  
+📱 **Responsive** - Funktioniert auf Desktop, Tablet und Mobile  
+🌐 **Deutsch** - Vollständig auf Deutsch lokalisiert  
+📄 **PDF & PPTX Support** - Import von PDF- und PowerPoint-Präsentationen  
+
+## Tech Stack
+
+- **Backend**: Node.js mit Express
+- **Frontend**: HTML, CSS, JavaScript (Vanilla)
+- **Präsentation**: Reveal.js
+- **Authentifizierung**: JWT + bcrypt
+- **E-Mail**: Nodemailer (SMTP)
+- **Reverse Proxy**: Caddy
+- **PPTX/PDF-Konvertierung**: LibreOffice (optional), pdftoppm für PDF
+- **Speicher**: Dateibasiert (JSON)
+- **Container**: Docker & Docker Compose
+
+## Schnellstart
+
+### Voraussetzungen
+
+- Docker & Docker Compose installiert
+- Mindestens 1GB RAM
+- Port 80 und 443 verfügbar
+
+### Installation
+
+1. **Repository klonen**
+```bash
+git clone https://github.com/TimUx/fw-webminar.git
+cd fw-webminar
+```
+
+2. **Umgebungsvariablen konfigurieren**
+```bash
+cp .env.example .env
+# .env bearbeiten und JWT_SECRET ändern
+```
+
+3. **Verzeichnisse erstellen**
+```bash
+mkdir -p data uploads slides assets
+```
+
+4. **Starten**
+```bash
+docker-compose up -d
+```
+
+5. **Zugriff**
+- Webinar-Frontend: http://localhost
+- Admin-Panel: http://localhost/admin/
+
+### Erstes Login
+
+1. Öffnen Sie http://localhost/admin/login.html
+2. Benutzername: `admin`
+3. Passwort: Beliebiges Passwort (wird beim ersten Login gesetzt)
+
+Das erste eingegebene Passwort wird zum Admin-Passwort.
+
+## Konfiguration
+
+### SMTP E-Mail
+
+1. Im Admin-Panel zu "E-Mail (SMTP)" navigieren
+2. SMTP-Server-Details eingeben:
+   - Host: z.B. `smtp.gmail.com`
+   - Port: `587` (TLS) oder `465` (SSL)
+   - Benutzername: Ihre E-Mail-Adresse
+   - Passwort: Ihr E-Mail-Passwort oder App-Passwort
+   - Absender E-Mail: E-Mail-Adresse für ausgehende Nachrichten
+
+3. Test-E-Mail senden zur Überprüfung
+
+### Header und Logo anpassen
+
+1. Im Admin-Panel zu "Einstellungen" navigieren
+2. Header-Titel eingeben
+3. Logo hochladen (PNG, JPG, SVG)
+4. Speichern
+
+### Caddy für HTTPS konfigurieren
+
+Für Produktion mit HTTPS:
+
+1. `Caddyfile` bearbeiten:
+```
+your-domain.com {
+    reverse_proxy backend:3000
+    encode gzip zstd
+    
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
+```
+
+2. Container neu starten:
+```bash
+docker-compose restart caddy
+```
+
+Caddy richtet automatisch Let's Encrypt HTTPS ein.
+
+## Webinar erstellen
+
+### Methode 1: Manuelle Slides
+
+1. Im Admin-Panel zu "Webinare" navigieren
+2. "Neues Webinar erstellen" klicken
+3. Titel eingeben
+4. Folien hinzufügen:
+   - Titel
+   - Inhalt (HTML erlaubt)
+   - Sprechernotiz (für automatische Sprachausgabe)
+5. Quiz-Fragen hinzufügen:
+   - Frage
+   - 4 Antwortmöglichkeiten
+   - Richtige Antwort markieren
+6. Speichern
+
+### Methode 2: PPTX/PDF-Upload (optional)
+
+1. Präsentationsdatei (PPTX oder PDF) im Bereich "Präsentationen" hochladen
+2. Bei Webinar-Erstellung Präsentationsdatei auswählen
+3. System konvertiert automatisch:
+   - **PDF**: Wird in einzelne Bilder umgewandelt (mit pdftoppm)
+   - **PPTX**: Wird mit LibreOffice konvertiert
+   - Bei fehlenden Tools: Manuelle Slides verwenden
+
+## Dateistruktur
+
+```
+fw-webminar/
+├── backend/              # Node.js Backend
+│   ├── routes/          # API-Routen
+│   ├── services/        # Business-Logik
+│   ├── middleware/      # Express-Middleware
+│   ├── utils/           # Hilfsfunktionen
+│   └── server.js        # Haupt-Server
+├── public/              # Frontend
+│   ├── admin/           # Admin-Panel
+│   ├── webinar/         # Öffentliche Webinar-Seite
+│   └── assets/          # CSS, JS, Bilder
+├── data/                # JSON-Dateispeicher
+│   ├── users.json
+│   ├── settings.json
+│   ├── smtp.json
+│   ├── webinars.json
+│   ├── results.json
+│   └── audit.log
+├── uploads/             # Hochgeladene PPTX
+├── slides/              # Generierte Präsentationen
+├── assets/              # Logos, Theme
+├── docker-compose.yml   # Docker-Konfiguration
+├── Dockerfile           # Backend-Container
+├── Caddyfile           # Caddy-Konfiguration
+└── README.md
+```
+
+## API-Endpunkte
+
+### Authentifizierung
+- `POST /api/auth/login` - Admin-Login
+- `POST /api/auth/setup` - Initiales Passwort setzen
+
+### Admin (authentifiziert)
+- `GET/PUT /api/admin/settings` - Einstellungen
+- `POST /api/admin/settings/logo` - Logo hochladen
+- `GET/PUT /api/admin/smtp` - SMTP-Konfiguration
+- `POST /api/admin/smtp/test` - Test-E-Mail
+- `GET /api/admin/pptx` - PPTX-Liste
+- `POST /api/admin/pptx/upload` - PPTX hochladen
+- `DELETE /api/admin/pptx/:filename` - PPTX löschen
+- `GET/POST/PUT/DELETE /api/admin/webinars` - Webinar-Verwaltung
+- `GET /api/admin/results` - Ergebnisse abrufen
+- `GET /api/admin/results/export` - CSV-Export
+
+### Öffentlich
+- `GET /api/webinar/settings` - Öffentliche Einstellungen
+- `GET /api/webinar/list` - Webinar-Liste
+- `GET /api/webinar/:id` - Webinar-Details
+- `POST /api/webinar/:id/submit` - Quiz-Ergebnis einreichen
+
+## Sicherheit
+
+- ✅ JWT-Token-Authentifizierung
+- ✅ bcrypt-Passwort-Hashing (10 Runden)
+- ✅ Rate Limiting (100 Anfragen/15 Min)
+- ✅ Helmet.js Security Headers
+- ✅ Input-Validierung
+- ✅ Datei-Upload-Validierung
+- ✅ CSRF-Schutz durch SameSite-Cookies
+- ✅ Audit-Logging
+
+## Datensicherung
+
+Wichtige Daten liegen in:
+- `./data/` - Alle JSON-Dateien
+- `./uploads/` - Hochgeladene PPTX
+- `./slides/` - Generierte Präsentationen
+- `./assets/` - Logos und Assets
+
+Backup-Befehl:
+```bash
+tar -czf backup-$(date +%Y%m%d).tar.gz data/ uploads/ slides/ assets/
+```
+
+## Fehlerbehebung
+
+### Container starten nicht
+```bash
+docker-compose logs -f
+```
+
+### Admin-Passwort zurücksetzen
+```bash
+# users.json bearbeiten und passwordHash löschen
+# Beim nächsten Login wird neues Passwort gesetzt
+```
+
+### SMTP funktioniert nicht
+- SMTP-Zugangsdaten überprüfen
+- Firewall-Regeln überprüfen (Port 587/465)
+- Test-E-Mail im Admin-Panel senden
+- Bei Gmail: App-Passwort verwenden
+
+### LibreOffice-Konvertierung fehlschlägt
+- LibreOffice-Container in docker-compose.yml aktivieren
+- Alternative: Manuelle Slides verwenden
+
+## Entwicklung
+
+### Lokale Entwicklung ohne Docker
+
+1. Dependencies installieren:
+```bash
+npm install
+```
+
+2. Umgebungsvariablen setzen:
+```bash
+cp .env.example .env
+```
+
+3. Development-Server starten:
+```bash
+npm run dev
+```
+
+4. Zugriff auf http://localhost:3000
+
+### Logs anzeigen
+```bash
+docker-compose logs -f backend
+```
+
+### Container neu starten
+```bash
+docker-compose restart
+```
+
+## Lizenz
+
+MIT License
+
+## Support
+
+Bei Fragen oder Problemen:
+- GitHub Issues: https://github.com/TimUx/fw-webminar/issues
+
+## Mitwirken
+
+Pull Requests sind willkommen!
+
+## Credits
+
+Design basiert auf: https://github.com/TimUx/fw-fragenkatalog
+
+## Changelog
+
+### Version 1.0.0 (2024)
+- Initiales Release
+- Admin-Panel
+- Webinar-Verwaltung
+- Quiz-System
+- E-Mail-Benachrichtigungen
+- Sprachausgabe
+- Docker-Deployment

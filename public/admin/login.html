@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Webinar Platform</title>
+  <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <h1>🔐 Admin Login</h1>
+        <p>Webinar Platform</p>
+      </div>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Benutzername</label>
+          <input type="text" id="username" name="username" value="admin" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Passwort</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div id="errorMessage" class="error-message hidden"></div>
+        
+        <button type="submit" class="btn btn-primary">Anmelden</button>
+      </form>
+      
+      <div class="setup-hint">
+        <p>Beim ersten Start: Verwenden Sie beliebiges Passwort zur Einrichtung.</p>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/assets/js/admin-login.js"></script>
+</body>
+</html>

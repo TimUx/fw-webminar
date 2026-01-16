@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Webinar Platform</title>
+  <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+  <header>
+    <div class="header-branding">
+      <h1>⚙️ Admin Panel - Webinar Platform</h1>
+    </div>
+    <nav class="header-nav">
+      <button onclick="showSection('settings')">Einstellungen</button>
+      <button onclick="showSection('smtp')">E-Mail (SMTP)</button>
+      <button onclick="showImportModal()" style="background: #27ae60;">📤 Import (PPTX/PDF)</button>
+      <button onclick="showSection('webinars')">Webinare</button>
+      <button onclick="showSection('results')">Ergebnisse</button>
+      <button onclick="logout()" class="btn-logout">Abmelden</button>
+    </nav>
+  </header>
+  
+  <!-- Settings Section -->
+  <section id="settings-section" class="content-section">
+    <h2>Einstellungen</h2>
+    
+    <div class="card">
+      <h3>Header-Konfiguration</h3>
+      <form id="settingsForm">
+        <div class="form-group">
+          <label for="headerTitle">Header-Titel</label>
+          <input type="text" id="headerTitle" name="headerTitle" placeholder="Webinar Platform">
+        </div>
+        
+        <div class="form-group">
+          <label for="logoFile">Logo hochladen</label>
+          <input type="file" id="logoFile" accept="image/*">
+          <div id="currentLogo" class="current-logo"></div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </form>
+    </div>
+  </section>
+  
+  <!-- SMTP Section -->
+  <section id="smtp-section" class="content-section hidden">
+    <h2>E-Mail Konfiguration (SMTP)</h2>
+    
+    <div class="card">
+      <form id="smtpForm">
+        <div class="form-group">
+          <label for="smtpHost">SMTP Host</label>
+          <input type="text" id="smtpHost" name="host" placeholder="smtp.example.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="smtpPort">Port</label>
+          <input type="number" id="smtpPort" name="port" value="587" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="smtpUsername">Benutzername</label>
+          <input type="text" id="smtpUsername" name="username" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="smtpPassword">Passwort</label>
+          <input type="password" id="smtpPassword" name="password">
+          <small>Leer lassen, um bestehendes Passwort zu behalten</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="smtpFrom">Absender E-Mail</label>
+          <input type="email" id="smtpFrom" name="from" required>
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="smtpSecure" name="secure">
+            TLS/SSL verwenden
+          </label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">SMTP Konfiguration speichern</button>
+      </form>
+      
+      <hr>
+      
+      <h3>Test-E-Mail senden</h3>
+      <form id="testEmailForm">
+        <div class="form-group">
+          <label for="testEmail">Test-Empfänger</label>
+          <input type="email" id="testEmail" name="recipient" required>
+        </div>
+        <button type="submit" class="btn btn-secondary">Test-E-Mail senden</button>
+      </form>
+    </div>
+  </section>
+  
+  <!-- PPTX Section -->
+  <section id="pptx-section" class="content-section hidden">
+    <h2>Präsentations-Verwaltung (PPTX/PDF)</h2>
+    
+    <div class="card">
+      <h3>PPTX/PDF hochladen</h3>
+      <form id="pptxUploadForm">
+        <div class="form-group">
+          <label for="pptxFile">PPTX- oder PDF-Datei auswählen</label>
+          <input type="file" id="pptxFile" accept=".pptx,.ppt,.pdf" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Datei hochladen</button>
+      </form>
+    </div>
+    
+    <div class="card">
+      <h3>Hochgeladene Präsentationen</h3>
+      <div id="pptxList"></div>
+    </div>
+  </section>
+  
+  <!-- Webinars Section -->
+  <section id="webinars-section" class="content-section hidden">
+    <h2>Webinar Verwaltung</h2>
+    
+    <button onclick="showCreateWebinar()" class="btn btn-primary">Neues Webinar erstellen</button>
+    
+    <div id="webinarList" class="webinar-list"></div>
+    
+    <!-- Create/Edit Webinar Modal -->
+    <div id="webinarModal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close" onclick="closeWebinarModal()">&times;</span>
+        <h3 id="modalTitle">Neues Webinar</h3>
+        
+        <form id="webinarForm">
+          <input type="hidden" id="webinarId">
+          
+          <div class="form-group">
+            <label for="webinarTitle">Titel</label>
+            <input type="text" id="webinarTitle" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="webinarPptx">Präsentationsdatei (PPTX/PDF, optional)</label>
+            <select id="webinarPptx">
+              <option value="">Keine Präsentationsdatei</option>
+            </select>
+          </div>
+          
+          <h4>Folien</h4>
+          <div id="slidesContainer"></div>
+          <button type="button" onclick="addSlide()" class="btn btn-secondary">Folie hinzufügen</button>
+          
+          <h4>Quiz-Fragen</h4>
+          <div id="questionsContainer"></div>
+          <button type="button" onclick="addQuestion()" class="btn btn-secondary">Frage hinzufügen</button>
+          
+          <div class="modal-actions">
+            <button type="submit" class="btn btn-primary">Speichern</button>
+            <button type="button" onclick="closeWebinarModal()" class="btn btn-secondary">Abbrechen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Results Section -->
+  <section id="results-section" class="content-section hidden">
+    <h2>Webinar Ergebnisse</h2>
+    
+    <div class="card">
+      <button onclick="exportResults()" class="btn btn-primary">Als CSV exportieren</button>
+      
+      <div id="resultsTable"></div>
+    </div>
+  </section>
+  
+  <!-- Import Modal -->
+  <div id="importModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close" onclick="closeImportModal()">&times;</span>
+      <h3>📤 Präsentationen importieren</h3>
+      
+      <p style="margin-bottom: 20px;">Laden Sie PPTX-Präsentationen oder PDF-Dokumente hoch, um sie als Basis für Webinar-Slides zu verwenden.</p>
+      
+      <form id="importForm">
+        <div class="form-group">
+          <label for="importFiles">Dateien auswählen (PPTX oder PDF)</label>
+          <input type="file" id="importFiles" accept=".pptx,.ppt,.pdf" multiple required>
+          <small>Sie können mehrere Dateien gleichzeitig auswählen</small>
+        </div>
+        
+        <div id="importFilesList" style="margin: 15px 0;"></div>
+        
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Importieren</button>
+          <button type="button" onclick="closeImportModal()" class="btn btn-secondary">Abbrechen</button>
+        </div>
+      </form>
+      
+      <hr style="margin: 30px 0;">
+      
+      <h3>Importierte Präsentationen</h3>
+      <div id="importedFilesList"></div>
+    </div>
+  </div>
+  
+  <div id="notification" class="notification hidden"></div>
+  
+  <script src="/assets/js/admin.js"></script>
+</body>
+</html>

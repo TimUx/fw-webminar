@@ -1,0 +1,11 @@
+FROM libreoffice/online:master
+
+# This container provides LibreOffice for PPTX conversion
+# The main backend will communicate with this service for conversions
+
+# Expose LibreOffice service port
+EXPOSE 9980
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s \
+  CMD curl -f http://localhost:9980/ || exit 1
