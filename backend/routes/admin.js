@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const { authMiddleware } = require('../middleware/auth');
 const { Storage } = require('../utils/storage');
 const { logAudit } = require('../utils/logger');
@@ -21,14 +22,14 @@ const resultsStorage = new Storage('results.json');
 
 // File upload configuration
 const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
+  destination: (req, file, cb) => {
     const dir = file.fieldname === 'logo' 
       ? path.join(__dirname, '../../assets') 
       : path.join(__dirname, '../../uploads');
     
-    // Ensure directory exists
+    // Ensure directory exists (synchronous)
     try {
-      await fs.mkdir(dir, { recursive: true });
+      fsSync.mkdirSync(dir, { recursive: true });
       cb(null, dir);
     } catch (error) {
       cb(error);
