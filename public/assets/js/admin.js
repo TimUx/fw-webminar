@@ -160,6 +160,7 @@ async function loadSMTP() {
     document.getElementById('smtpPort').value = smtp.port || 587;
     document.getElementById('smtpUsername').value = smtp.username || '';
     document.getElementById('smtpFrom').value = smtp.from || '';
+    document.getElementById('smtpRecipient').value = smtp.recipient || '';
     document.getElementById('smtpSecure').checked = smtp.secure || false;
   } catch (error) {
     showNotification('Fehler beim Laden der SMTP-Konfiguration: ' + error.message, true);
@@ -176,6 +177,7 @@ document.getElementById('smtpForm').addEventListener('submit', async (e) => {
       username: document.getElementById('smtpUsername').value,
       password: document.getElementById('smtpPassword').value,
       from: document.getElementById('smtpFrom').value,
+      recipient: document.getElementById('smtpRecipient').value,
       secure: document.getElementById('smtpSecure').checked
     };
     

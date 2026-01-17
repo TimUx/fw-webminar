@@ -125,6 +125,9 @@ async function sendAdminNotification(participant, webinar, result) {
   const transporter = await createTransporter();
   const config = await smtpStorage.read();
 
+  // Use configured recipient email if available, fallback to sender email
+  const recipientEmail = config.recipient || config.from || config.username;
+
   const passed = result.passed ? 'bestanden' : 'nicht bestanden';
 
   const html = `
@@ -154,7 +157,7 @@ async function sendAdminNotification(participant, webinar, result) {
 
   const info = await transporter.sendMail({
     from: config.from || config.username,
-    to: config.from || config.username,
+    to: recipientEmail,
     subject: `Neue Teilnahme: ${webinar.title} - ${participant.name}`,
     html
   });
