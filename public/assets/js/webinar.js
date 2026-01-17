@@ -11,6 +11,9 @@ let selectedVoice = null;
 let speechRate = 0.85;
 let speechPitch = 1.0;
 let speechErrorCount = 0;
+let narrationComplete = false;
+let slideStartTime = null;
+let slideMinimumTimePassed = false;
 
 // Load settings and webinars on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -116,6 +119,11 @@ function loadPresentation() {
 
 // Navigation functions
 function nextSlide() {
+  // Check if narration is complete and minimum time has passed
+  if (!narrationComplete || !slideMinimumTimePassed) {
+    return; // Don't advance if conditions not met
+  }
+  
   const iframe = document.getElementById('presentationFrame');
   const totalSlides = currentWebinar.slides.length;
   
@@ -161,8 +169,13 @@ function updateSlideCounter() {
   const progress = ((currentSlideIndex + 1) / totalSlides) * 100;
   document.getElementById('progressFill').style.width = `${progress}%`;
   
+  // Previous button: always enabled except on first slide
   document.getElementById('prevSlideBtn').disabled = currentSlideIndex === 0;
-  document.getElementById('nextSlideBtn').disabled = currentSlideIndex >= totalSlides - 1;
+  
+  // Next button: disabled if on last slide OR if narration/time conditions not met
+  const isLastSlide = currentSlideIndex >= totalSlides - 1;
+  const canAdvance = narrationComplete && slideMinimumTimePassed;
+  document.getElementById('nextSlideBtn').disabled = isLastSlide || !canAdvance;
 }
 
 // Initialize and load available voices
@@ -308,8 +321,25 @@ function chunkText(text) {
 function speakSlideNote(slideIndex) {
   stopSpeaking();
   
+  // Reset narration state for new slide
+  narrationComplete = false;
+  slideMinimumTimePassed = false;
+  slideStartTime = Date.now();
+  updateSlideCounter();
+  
+  // Start minimum time timer (10 seconds)
+  setTimeout(() => {
+    slideMinimumTimePassed = true;
+    updateSlideCounter();
+  }, 10000);
+  
   const slide = currentWebinar.slides[slideIndex];
-  if (!slide || !slide.speakerNote) return;
+  if (!slide || !slide.speakerNote) {
+    // No narration, mark as complete immediately
+    narrationComplete = true;
+    updateSlideCounter();
+    return;
+  }
   
   const text = slide.speakerNote;
   const chunks = chunkText(text);
@@ -322,10 +352,13 @@ function speakSlideNote(slideIndex) {
 // Speak text chunks sequentially for better flow
 function speakChunks(chunks, index) {
   if (index >= chunks.length) {
-    // All chunks spoken
+    // All chunks spoken - narration complete
     const indicator = document.getElementById('narrationIndicator');
     indicator.classList.add('hidden');
     indicator.classList.remove('speaking');
+    
+    narrationComplete = true;
+    updateSlideCounter();
     return;
   }
   
@@ -367,6 +400,10 @@ function speakChunks(chunks, index) {
       const indicator = document.getElementById('narrationIndicator');
       indicator.classList.add('hidden');
       indicator.classList.remove('speaking');
+      
+      // Mark narration as complete even on error
+      narrationComplete = true;
+      updateSlideCounter();
       return;
     }
     
