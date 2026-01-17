@@ -152,6 +152,9 @@ function createQuillEditor(container, initialContent = '') {
     container.appendChild(editorDiv);
   }
   
+  // Variable to track selected image
+  let selectedImage = null;
+  
   // Initialize Quill with custom toolbar including headings and table
   const quill = new Quill(editorDiv, {
     theme: 'snow',
@@ -194,10 +197,19 @@ function createQuillEditor(container, initialContent = '') {
                 try {
                   const url = await uploadImageToServer(file);
                   
-                  // Insert image into editor
+                  // Insert image into editor with medium size by default
                   const range = this.quill.getSelection(true);
                   this.quill.insertEmbed(range.index, 'image', url);
                   this.quill.setSelection(range.index + 1);
+                  
+                  // Apply medium size class to the newly inserted image
+                  setTimeout(() => {
+                    const images = this.quill.root.querySelectorAll('img');
+                    const newImage = images[images.length - 1];
+                    if (newImage) {
+                      newImage.classList.add('img-medium');
+                    }
+                  }, 100);
                   
                   showNotification('Bild erfolgreich hochgeladen');
                 } catch (error) {
@@ -211,6 +223,136 @@ function createQuillEditor(container, initialContent = '') {
           }
         }
       }
+    }
+  });
+  
+  // Handle image selection for resizing
+  quill.root.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG') {
+      // Deselect previous image
+      if (selectedImage) {
+        selectedImage.classList.remove('selected-image');
+      }
+      // Select new image
+      selectedImage = e.target;
+      selectedImage.classList.add('selected-image');
+    } else {
+      // Clicked outside image, deselect
+      if (selectedImage) {
+        selectedImage.classList.remove('selected-image');
+        selectedImage = null;
+      }
+    }
+  });
+  
+  // Add custom toolbar buttons for image sizing and columns
+  const toolbar = quill.getModule('toolbar');
+  const toolbarContainer = toolbar.container;
+  
+  // Create image sizing buttons section
+  const imageSizingGroup = document.createElement('span');
+  imageSizingGroup.className = 'ql-formats';
+  imageSizingGroup.innerHTML = `
+    <button class="ql-image-small" type="button" title="Bild klein (25%)">
+      <span style="font-size: 10px;">S</span>
+    </button>
+    <button class="ql-image-medium" type="button" title="Bild mittel (50%)">
+      <span style="font-size: 12px;">M</span>
+    </button>
+    <button class="ql-image-large" type="button" title="Bild groß (75%)">
+      <span style="font-size: 14px;">L</span>
+    </button>
+    <button class="ql-image-full" type="button" title="Bild volle Breite (100%)">
+      <span style="font-size: 16px;">XL</span>
+    </button>
+  `;
+  toolbarContainer.appendChild(imageSizingGroup);
+  
+  // Create column layout buttons section
+  const columnsGroup = document.createElement('span');
+  columnsGroup.className = 'ql-formats';
+  columnsGroup.innerHTML = `
+    <button class="ql-columns-2" type="button" title="2 Spalten einfügen">
+      <span style="font-size: 10px;">⬜⬜</span>
+    </button>
+    <button class="ql-columns-3" type="button" title="3 Spalten einfügen">
+      <span style="font-size: 10px;">⬜⬜⬜</span>
+    </button>
+  `;
+  toolbarContainer.appendChild(columnsGroup);
+  
+  // Add event listeners for image sizing buttons
+  toolbarContainer.querySelector('.ql-image-small').addEventListener('click', () => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
+      selectedImage.classList.add('img-small');
+      showNotification('Bildgröße auf "klein" gesetzt');
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  });
+  
+  toolbarContainer.querySelector('.ql-image-medium').addEventListener('click', () => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
+      selectedImage.classList.add('img-medium');
+      showNotification('Bildgröße auf "mittel" gesetzt');
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  });
+  
+  toolbarContainer.querySelector('.ql-image-large').addEventListener('click', () => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
+      selectedImage.classList.add('img-large');
+      showNotification('Bildgröße auf "groß" gesetzt');
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  });
+  
+  toolbarContainer.querySelector('.ql-image-full').addEventListener('click', () => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
+      selectedImage.classList.add('img-full');
+      showNotification('Bildgröße auf "volle Breite" gesetzt');
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  });
+  
+  // Add event listeners for column layout buttons
+  toolbarContainer.querySelector('.ql-columns-2').addEventListener('click', () => {
+    const range = quill.getSelection(true);
+    if (range) {
+      const columnsHTML = `
+        <div class="columns-2">
+          <div class="column"><p>Spalte 1</p></div>
+          <div class="column"><p>Spalte 2</p></div>
+        </div>
+        <p><br></p>
+      `;
+      quill.clipboard.dangerouslyPasteHTML(range.index, columnsHTML);
+      quill.setSelection(range.index + 1);
+      showNotification('2-Spalten-Layout eingefügt');
+    }
+  });
+  
+  toolbarContainer.querySelector('.ql-columns-3').addEventListener('click', () => {
+    const range = quill.getSelection(true);
+    if (range) {
+      const columnsHTML = `
+        <div class="columns-3">
+          <div class="column"><p>Spalte 1</p></div>
+          <div class="column"><p>Spalte 2</p></div>
+          <div class="column"><p>Spalte 3</p></div>
+        </div>
+        <p><br></p>
+      `;
+      quill.clipboard.dangerouslyPasteHTML(range.index, columnsHTML);
+      quill.setSelection(range.index + 1);
+      showNotification('3-Spalten-Layout eingefügt');
     }
   });
   

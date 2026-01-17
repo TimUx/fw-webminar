@@ -720,3 +720,101 @@ hr {
   font-size: 16px;
 }
 
+/* Image Sizing in Quill Editor */
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+}
+
+.ql-editor img.img-small {
+  max-width: 25%;
+  float: none;
+  display: inline-block;
+}
+
+.ql-editor img.img-medium {
+  max-width: 50%;
+  float: none;
+  display: inline-block;
+}
+
+.ql-editor img.img-large {
+  max-width: 75%;
+  float: none;
+  display: inline-block;
+}
+
+.ql-editor img.img-full {
+  max-width: 100%;
+  float: none;
+  display: block;
+}
+
+.ql-editor img.img-float-left {
+  float: left;
+  margin: 0 15px 15px 0;
+}
+
+.ql-editor img.img-float-right {
+  float: right;
+  margin: 0 0 15px 15px;
+}
+
+/* Column Layout Support */
+.ql-editor .columns-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.ql-editor .columns-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.ql-editor .column {
+  padding: 10px;
+  border: 1px dashed #ddd;
+  min-height: 50px;
+}
+
+/* Image Size Toolbar Buttons */
+.ql-toolbar .ql-image-size {
+  width: auto !important;
+}
+
+.ql-toolbar button.ql-image-small::after {
+  content: 'S';
+}
+
+.ql-toolbar button.ql-image-medium::after {
+  content: 'M';
+}
+
+.ql-toolbar button.ql-image-large::after {
+  content: 'L';
+}
+
+.ql-toolbar button.ql-image-full::after {
+  content: 'XL';
+}
+
+/* Column Toolbar Buttons */
+.ql-toolbar button.ql-columns-2::after {
+  content: '⬜⬜';
+}
+
+.ql-toolbar button.ql-columns-3::after {
+  content: '⬜⬜⬜';
+}
+
+/* Selected Image Highlight */
+.ql-editor img.selected-image {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
