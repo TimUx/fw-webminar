@@ -625,11 +625,9 @@ function moveSlideUp(button) {
     container.insertBefore(slideItem, previousSlide);
     
     // Swap in Quill editors array
-    if (slideIndex < quillEditors.length && slideIndex - 1 >= 0) {
-      const temp = quillEditors[slideIndex];
-      quillEditors[slideIndex] = quillEditors[slideIndex - 1];
-      quillEditors[slideIndex - 1] = temp;
-    }
+    const temp = quillEditors[slideIndex];
+    quillEditors[slideIndex] = quillEditors[slideIndex - 1];
+    quillEditors[slideIndex - 1] = temp;
     
     // Update slide numbers
     updateSlideNumbers();
@@ -648,11 +646,9 @@ function moveSlideDown(button) {
     container.insertBefore(nextSlide, slideItem);
     
     // Swap in Quill editors array
-    if (slideIndex < quillEditors.length - 1 && slideIndex + 1 < quillEditors.length) {
-      const temp = quillEditors[slideIndex];
-      quillEditors[slideIndex] = quillEditors[slideIndex + 1];
-      quillEditors[slideIndex + 1] = temp;
-    }
+    const temp = quillEditors[slideIndex];
+    quillEditors[slideIndex] = quillEditors[slideIndex + 1];
+    quillEditors[slideIndex + 1] = temp;
     
     // Update slide numbers
     updateSlideNumbers();
