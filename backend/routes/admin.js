@@ -464,6 +464,10 @@ router.put('/webinars/:id', async (req, res) => {
     const { id } = req.params;
     const { title, pptxFile, questions, slides } = req.body;
     
+    // Debug logging
+    console.log(`[DEBUG] Updating webinar ${id}`);
+    console.log(`[DEBUG] Slides provided: ${slides !== undefined}, count: ${slides ? slides.length : 'N/A'}`);
+    
     const data = await webinarsStorage.update(data => {
       if (!data.webinars) data.webinars = [];
       const index = data.webinars.findIndex(w => w.id === id);
@@ -476,8 +480,8 @@ router.put('/webinars/:id', async (req, res) => {
         ...data.webinars[index],
         title: title || data.webinars[index].title,
         pptxFile: pptxFile !== undefined ? pptxFile : data.webinars[index].pptxFile,
-        questions: questions || data.webinars[index].questions,
-        slides: slides || data.webinars[index].slides,
+        questions: questions !== undefined ? questions : data.webinars[index].questions,
+        slides: slides !== undefined ? slides : data.webinars[index].slides,
         updatedAt: new Date().toISOString()
       };
       
@@ -486,10 +490,14 @@ router.put('/webinars/:id', async (req, res) => {
     
     // Regenerate slides if updated
     if (slides && slides.length > 0) {
+      console.log(`[DEBUG] Regenerating ${slides.length} slides for webinar ${id}`);
       await generateSimpleSlides(id, slides);
+    } else {
+      console.log(`[DEBUG] NOT regenerating slides: slides=${slides !== undefined}, length=${slides ? slides.length : 'N/A'}`);
     }
     
     const webinar = data.webinars.find(w => w.id === id);
+    console.log(`[DEBUG] Updated webinar slides count: ${webinar.slides ? webinar.slides.length : 'N/A'}`);
     logAudit('WEBINAR_UPDATE', req.user.username, `Webinar aktualisiert: ${webinar.title}`);
     
     res.json(webinar);
