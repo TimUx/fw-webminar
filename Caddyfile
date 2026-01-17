@@ -22,18 +22,18 @@
 
 # For local development:
 :80 {
-    reverse_proxy backend:3000
-    
-    encode gzip zstd
-    
-    header {
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
-    
-    log {
-        output stdout
-        format console
-    }
+	reverse_proxy backend:3000
+
+	encode gzip zstd
+
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+
+	log {
+		output stdout
+		format console
+	}
 }
