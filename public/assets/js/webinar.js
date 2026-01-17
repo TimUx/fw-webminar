@@ -196,10 +196,40 @@ function updateSlideCounter() {
   // Previous button: always enabled except on first slide
   document.getElementById('prevSlideBtn').disabled = currentSlideIndex === 0;
   
-  // Next button: disabled if on last slide OR if narration/time conditions not met
+  // Next button logic
   const isLastSlide = currentSlideIndex >= totalSlides - 1;
   const canAdvance = narrationComplete && slideMinimumTimePassed;
-  document.getElementById('nextSlideBtn').disabled = isLastSlide || !canAdvance;
+  
+  // On last slide: show different text and enable when conditions are met
+  const nextBtn = document.getElementById('nextSlideBtn');
+  if (isLastSlide) {
+    nextBtn.textContent = 'Zur Lernkontrolle →';
+    nextBtn.disabled = !canAdvance;
+  } else {
+    nextBtn.textContent = 'Weiter ▶';
+    nextBtn.disabled = !canAdvance;
+  }
+  
+  // Update status message
+  updateNextButtonStatus(canAdvance);
+}
+
+// Update status message for the next button
+function updateNextButtonStatus(canAdvance) {
+  const statusElement = document.getElementById('nextSlideStatus');
+  if (!statusElement) return;
+  
+  if (canAdvance) {
+    statusElement.textContent = '';
+    return;
+  }
+  
+  // Show why button is disabled
+  if (!narrationComplete && !isMuted) {
+    statusElement.textContent = '🔊 Warten auf Abschluss der Sprachausgabe...';
+  } else if (!slideMinimumTimePassed) {
+    statusElement.textContent = '⏳ Bitte warten Sie noch einen Moment...';
+  }
 }
 
 // Initialize and load available voices
