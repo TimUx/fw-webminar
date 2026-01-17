@@ -592,8 +592,4 @@ button:disabled {
   .voice-controls {
     grid-template-columns: 1fr;
   }
-  
-  .voice-control-group {
-    min-width: 100%;
-  }
 }
