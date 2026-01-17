@@ -79,10 +79,27 @@ const storage = multer.diskStorage({
     });
   },
   filename: (req, file, cb) => {
-    // Preserve original filename with timestamp prefix to prevent collisions
-    const timestamp = Date.now();
+    // Use original filename
+    // If file exists, append number to prevent collisions
     const originalName = file.originalname;
-    cb(null, `${timestamp}-${originalName}`);
+    const dir = file.fieldname === 'logo' 
+      ? path.join(__dirname, '../../assets') 
+      : path.join(__dirname, '../../uploads');
+    
+    const baseFilePath = path.join(dir, originalName);
+    
+    // Check if file exists and find a unique name if needed
+    let finalName = originalName;
+    let counter = 1;
+    
+    while (fsSync.existsSync(path.join(dir, finalName))) {
+      const ext = path.extname(originalName);
+      const nameWithoutExt = path.basename(originalName, ext);
+      finalName = `${nameWithoutExt} (${counter})${ext}`;
+      counter++;
+    }
+    
+    cb(null, finalName);
   }
 });
 
@@ -232,36 +249,6 @@ router.post('/smtp/test', async (req, res) => {
 
 // ============ PPTX MANAGEMENT ============
 
-// Minimum number of digits expected in a timestamp prefix (10 digits ~ year 2001)
-const MIN_TIMESTAMP_DIGITS = 10;
-// Maximum reasonable timestamp digits (20 digits ~ year 2286486)
-const MAX_TIMESTAMP_DIGITS = 20;
-// Minimum timestamp value (year 2000)
-const YEAR_2000_TIMESTAMP = 946684800000;
-
-/**
- * Helper function to extract original filename from stored filename
- * Stored format: {timestamp}-{originalname}
- */
-function getOriginalFilename(storedFilename) {
-  // Match numeric timestamp followed by dash and filename
-  const match = storedFilename.match(/^(\d+)-(.+)$/);
-  
-  if (match) {
-    const timestampStr = match[1];
-    const timestamp = parseInt(timestampStr, 10);
-    
-    // Validate timestamp is reasonable length and value
-    if (timestampStr.length >= MIN_TIMESTAMP_DIGITS && 
-        timestampStr.length <= MAX_TIMESTAMP_DIGITS &&
-        timestamp > YEAR_2000_TIMESTAMP) {
-      return match[2];
-    }
-  }
-  
-  return storedFilename;
-}
-
 /**
  * GET /api/admin/pptx
  * List uploaded PPTX/PDF files
@@ -278,8 +265,8 @@ router.get('/pptx', async (req, res) => {
       const filepath = path.join(uploadsDir, filename);
       const stats = await fs.stat(filepath);
       return {
-        filename, // Actual filename on disk (with timestamp)
-        displayName: getOriginalFilename(filename), // Original filename for display
+        filename,
+        displayName: filename, // Original filename is now the actual filename
         size: stats.size,
         uploadedAt: stats.birthtime
       };
@@ -410,8 +397,27 @@ router.post('/webinars', async (req, res) => {
       updatedAt: new Date().toISOString()
     };
     
-    // Generate slides if provided
-    if (slides && slides.length > 0) {
+    // If pptxFile is provided but no slides, automatically analyze and generate slides
+    if (pptxFile && (!slides || slides.length === 0)) {
+      try {
+        const { analyzePresentation } = require('../services/slideAnalyzer');
+        const sessionId = `${webinar.id}-${Date.now()}`;
+        
+        logAudit('FILE_ANALYZE', req.user.username, `Auto-analysiere: ${pptxFile} für Webinar: ${title}`);
+        
+        // Analyze presentation synchronously
+        const analyzedSlides = await analyzePresentation(pptxFile, webinar.id, sessionId);
+        webinar.slides = analyzedSlides;
+        
+        // Generate slides presentation
+        await generateSimpleSlides(webinar.id, analyzedSlides);
+      } catch (analyzeError) {
+        console.error('Auto-analysis failed:', analyzeError);
+        // Continue creating webinar even if analysis fails
+        logAudit('FILE_ANALYZE_ERROR', req.user.username, `Auto-Analyse fehlgeschlagen: ${analyzeError.message}`);
+      }
+    } else if (slides && slides.length > 0) {
+      // Generate slides if provided manually
       await generateSimpleSlides(webinar.id, slides);
     }
     
