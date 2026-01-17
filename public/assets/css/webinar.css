@@ -41,7 +41,7 @@ h1 {
 
 /* Content sections */
 main, section {
-  max-width: 900px;
+  max-width: 95%;
   margin: 20px auto;
   background: white;
   padding: 30px;
@@ -139,7 +139,7 @@ button:disabled {
 /* Presentation Container */
 .presentation-container {
   width: 100%;
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
 }
@@ -491,9 +491,9 @@ button:disabled {
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 15px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
-  flex-wrap: wrap;
   align-items: center;
 }
 
@@ -501,8 +501,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
-  min-width: 180px;
+  min-width: 0;
 }
 
 .voice-control-group label {
@@ -590,7 +589,7 @@ button:disabled {
     font-size: 36px;
   }
   
-  .voice-control-group {
-    min-width: 100%;
+  .voice-controls {
+    grid-template-columns: 1fr;
   }
 }
