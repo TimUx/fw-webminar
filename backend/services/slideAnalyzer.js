@@ -49,6 +49,201 @@ class AnalysisProgress {
 const progressTracker = new AnalysisProgress();
 
 /**
+ * Configuration for repetitive content detection
+ */
+const REPETITIVE_CONTENT_CONFIG = {
+  // Minimum percentage of slides that must contain the text to be considered repetitive
+  minOccurrencePercentage: 0.6, // 60% of slides
+  // Minimum percentage for known pattern matches (lower threshold)
+  minPatternOccurrencePercentage: 0.3, // 30% of slides
+  // Minimum text length to be considered (ignore very short text like single characters)
+  minTextLength: 3,
+  // Maximum text length to be considered (ignore very long text that's unlikely to be header/footer)
+  maxTextLength: 200,
+  // Patterns that indicate repetitive content (case-insensitive)
+  repetitivePatterns: [
+    /^\d+$/, // Pure numbers (page numbers)
+    /^page\s+\d+/i, // "Page 1", "Page 2", etc.
+    /^seite\s+\d+/i, // "Seite 1", "Seite 2", etc. (German)
+    /^\d+\s*\/\s*\d+$/, // "1/10", "2/10", etc.
+    /©\s*\d{4}/, // Copyright with year
+    /\d{1,2}[.\/]\d{1,2}[.\/]\d{2,4}/, // Dates
+  ]
+};
+
+/**
+ * Detect repetitive text elements across slides
+ * Returns a Set of text strings that appear frequently across slides
+ */
+function detectRepetitiveText(slides) {
+  if (slides.length < 2) {
+    return new Set();
+  }
+
+  // Extract all text segments from each slide
+  const textOccurrences = new Map();
+  
+  slides.forEach(slide => {
+    // Note: speakerNote contains the extracted raw text from the slide
+    // This is where analyzePPTX and analyzePDF store the text content
+    const text = slide.speakerNote || '';
+    
+    // Split into lines and individual text segments
+    const segments = text
+      .split(/[\n\r]+/)
+      .map(line => line.trim())
+      .filter(line => {
+        return line.length >= REPETITIVE_CONTENT_CONFIG.minTextLength &&
+               line.length <= REPETITIVE_CONTENT_CONFIG.maxTextLength;
+      });
+    
+    // Track unique segments per slide to avoid counting duplicates within same slide
+    const uniqueSegments = new Set(segments);
+    
+    uniqueSegments.forEach(segment => {
+      if (!textOccurrences.has(segment)) {
+        textOccurrences.set(segment, 0);
+      }
+      textOccurrences.set(segment, textOccurrences.get(segment) + 1);
+    });
+  });
+
+  // Find text that appears in a significant percentage of slides
+  const minOccurrences = Math.ceil(slides.length * REPETITIVE_CONTENT_CONFIG.minOccurrencePercentage);
+  const repetitiveTexts = new Set();
+
+  textOccurrences.forEach((count, text) => {
+    if (count >= minOccurrences) {
+      repetitiveTexts.add(text);
+    } else {
+      // Also check if text matches known repetitive patterns
+      const matchesPattern = REPETITIVE_CONTENT_CONFIG.repetitivePatterns.some(
+        pattern => pattern.test(text)
+      );
+      if (matchesPattern && count >= Math.ceil(slides.length * REPETITIVE_CONTENT_CONFIG.minPatternOccurrencePercentage)) {
+        // Lower threshold for known patterns
+        repetitiveTexts.add(text);
+      }
+    }
+  });
+
+  return repetitiveTexts;
+}
+
+/**
+ * Detect repetitive images across slides
+ * Returns a Set of image filenames that appear frequently across slides
+ */
+function detectRepetitiveImages(slides) {
+  if (slides.length < 2) {
+    return new Set();
+  }
+
+  const imageOccurrences = new Map();
+
+  slides.forEach(slide => {
+    if (slide.images && slide.images.length > 0) {
+      const uniqueImages = new Set(slide.images.map(img => img.filename));
+      
+      uniqueImages.forEach(filename => {
+        if (!imageOccurrences.has(filename)) {
+          imageOccurrences.set(filename, 0);
+        }
+        imageOccurrences.set(filename, imageOccurrences.get(filename) + 1);
+      });
+    }
+  });
+
+  // Find images that appear in a significant percentage of slides
+  const minOccurrences = Math.ceil(slides.length * REPETITIVE_CONTENT_CONFIG.minOccurrencePercentage);
+  const repetitiveImages = new Set();
+
+  imageOccurrences.forEach((count, filename) => {
+    if (count >= minOccurrences) {
+      repetitiveImages.add(filename);
+    }
+  });
+
+  return repetitiveImages;
+}
+
+/**
+ * Remove repetitive text from a text string
+ */
+function removeRepetitiveText(text, repetitiveTexts) {
+  if (!text || repetitiveTexts.size === 0) {
+    return text;
+  }
+
+  // Split text into lines
+  let lines = text.split(/[\n\r]+/);
+  
+  // Filter out lines that match repetitive text
+  lines = lines.filter(line => {
+    const trimmedLine = line.trim();
+    return !repetitiveTexts.has(trimmedLine);
+  });
+
+  return lines.join('\n').trim();
+}
+
+/**
+ * Remove repetitive images from a slide's image array
+ */
+function removeRepetitiveImages(images, repetitiveImages) {
+  if (!images || images.length === 0 || repetitiveImages.size === 0) {
+    return images;
+  }
+
+  return images.filter(img => !repetitiveImages.has(img.filename));
+}
+
+/**
+ * Apply repetitive content filtering to all slides
+ * This function:
+ * 1. Detects text and images that appear repeatedly across slides
+ * 2. Removes these repetitive elements from each slide
+ * 3. Regenerates the slide content without repetitive elements
+ * 
+ * Note: The speakerNote field contains the raw extracted text and is the source
+ * for both detection and filtering. After filtering, formatSlideContent() is called
+ * to regenerate the HTML content based on the filtered text and images.
+ */
+function filterRepetitiveContent(slides) {
+  if (slides.length < 2) {
+    return slides;
+  }
+
+  // Detect repetitive elements
+  const repetitiveTexts = detectRepetitiveText(slides);
+  const repetitiveImages = detectRepetitiveImages(slides);
+
+  console.log(`Detected ${repetitiveTexts.size} repetitive text elements`);
+  console.log(`Detected ${repetitiveImages.size} repetitive images`);
+
+  // Filter each slide
+  return slides.map(slide => {
+    const filteredSlide = { ...slide };
+
+    // Filter repetitive text from speaker notes
+    if (slide.speakerNote) {
+      filteredSlide.speakerNote = removeRepetitiveText(slide.speakerNote, repetitiveTexts);
+    }
+
+    // Filter repetitive images
+    if (slide.images && slide.images.length > 0) {
+      filteredSlide.images = removeRepetitiveImages(slide.images, repetitiveImages);
+    }
+
+    // Regenerate content based on filtered data
+    const text = filteredSlide.speakerNote || '';
+    filteredSlide.content = formatSlideContent(text, filteredSlide.images);
+
+    return filteredSlide;
+  });
+}
+
+/**
  * Extract text content from PPTX slide XML
  */
 function extractTextFromSlideXML(xml) {
@@ -199,9 +394,14 @@ async function analyzePPTX(filename, webinarId, onProgress) {
     onProgress(40 + (progressPerSlide * (i + 1)), `Folie ${slideIndex}/${slideFiles.length} verarbeitet...`);
   }
   
+  onProgress(90, 'Entferne wiederkehrende Inhalte...');
+  
+  // Filter out repetitive content (headers, footers, logos, etc.)
+  const filteredSlides = filterRepetitiveContent(slides);
+  
   onProgress(95, 'Analyse abgeschlossen...');
   
-  return slides;
+  return filteredSlides;
 }
 
 /**
@@ -321,9 +521,14 @@ async function analyzePDF(filename, webinarId, onProgress) {
     onProgress(60 + (progressPerPage * (i + 1)), `Seite ${i + 1}/${pdfData.numpages} verarbeitet...`);
   }
   
+  onProgress(90, 'Entferne wiederkehrende Inhalte...');
+  
+  // Filter out repetitive content (headers, footers, page numbers, etc.)
+  const filteredSlides = filterRepetitiveContent(slides);
+  
   onProgress(95, 'PDF-Analyse abgeschlossen...');
   
-  return slides;
+  return filteredSlides;
 }
 
 /**
