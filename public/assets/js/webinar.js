@@ -153,14 +153,7 @@ function nextSlide() {
     if (!isMuted) {
       speakSlideNote(currentSlideIndex);
     } else {
-      // Still need to set narration complete for navigation
-      narrationComplete = true;
-      slideMinimumTimePassed = false;
-      updateSlideCounter();
-      setTimeout(() => {
-        slideMinimumTimePassed = true;
-        updateSlideCounter();
-      }, MINIMUM_SLIDE_DURATION);
+      handleMutedSlideTransition();
     }
   } else {
     // Last slide reached, show confirmation section
@@ -185,14 +178,7 @@ function previousSlide() {
     if (!isMuted) {
       speakSlideNote(currentSlideIndex);
     } else {
-      // Still need to set narration complete for navigation
-      narrationComplete = true;
-      slideMinimumTimePassed = false;
-      updateSlideCounter();
-      setTimeout(() => {
-        slideMinimumTimePassed = true;
-        updateSlideCounter();
-      }, MINIMUM_SLIDE_DURATION);
+      handleMutedSlideTransition();
     }
   }
 }
@@ -388,6 +374,19 @@ function chunkText(text) {
   return chunks.filter(chunk => chunk.length > 0);
 }
 
+// Helper function to handle slide transition when muted
+function handleMutedSlideTransition() {
+  narrationComplete = true;
+  slideMinimumTimePassed = false;
+  updateSlideCounter();
+  
+  // Still enforce minimum time even when muted
+  setTimeout(() => {
+    slideMinimumTimePassed = true;
+    updateSlideCounter();
+  }, MINIMUM_SLIDE_DURATION);
+}
+
 // Speech synthesis for narration
 function speakSlideNote(slideIndex) {
   stopSpeaking();
@@ -403,7 +402,7 @@ function speakSlideNote(slideIndex) {
     updateSlideCounter();
   }, MINIMUM_SLIDE_DURATION);
   
-  // If muted, just mark as complete immediately
+  // If muted, mark as complete but still enforce minimum time
   if (isMuted) {
     narrationComplete = true;
     updateSlideCounter();
