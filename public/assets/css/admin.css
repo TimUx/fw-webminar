@@ -886,31 +886,6 @@ hr {
   color: #06c !important;
 }
 
-.ql-toolbar button.ql-image-small::after {
-  content: 'S';
-}
-
-.ql-toolbar button.ql-image-medium::after {
-  content: 'M';
-}
-
-.ql-toolbar button.ql-image-large::after {
-  content: 'L';
-}
-
-.ql-toolbar button.ql-image-full::after {
-  content: 'XL';
-}
-
-/* Column Toolbar Buttons - Use outlined squares for better visibility */
-.ql-toolbar button.ql-columns-2::after {
-  content: '▢▢';
-}
-
-.ql-toolbar button.ql-columns-3::after {
-  content: '▢▢▢';
-}
-
 /* Selected Image Highlight */
 .ql-editor img.selected-image {
   outline: 2px solid #3498db;
