@@ -163,7 +163,7 @@ function updateSlideCounter() {
   document.getElementById('progressFill').style.width = `${progress}%`;
   
   document.getElementById('prevSlideBtn').disabled = currentSlideIndex === 0;
-  // Next button is enabled except when before the last slide
+  // Next button is never disabled - on last slide it leads to confirmation
   document.getElementById('nextSlideBtn').disabled = false;
 }
 
