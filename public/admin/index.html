@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - Webinar Platform</title>
-  <!-- TinyMCE WYSIWYG Editor -->
-  <script src="/assets/lib/tinymce/tinymce.min.js"></script>
+  <!-- Quill WYSIWYG Editor (self-hosted) -->
+  <link href="/assets/lib/quill/quill.snow.css" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/admin.css?v=1768652225">
 </head>
 <body>
@@ -217,6 +217,8 @@
   
   <div id="notification" class="notification hidden"></div>
   
+  <!-- Load Quill.js (self-hosted) before admin.js -->
+  <script src="/assets/lib/quill/quill.min.js"></script>
   <script src="/assets/js/admin.js?v=1768652225"></script>
 </body>
 </html>
