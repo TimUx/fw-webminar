@@ -79,14 +79,15 @@ const storage = multer.diskStorage({
     });
   },
   filename: (req, file, cb) => {
-    // Use original filename
-    // If file exists, append number to prevent collisions
+    // IMPORTANT: Use original filename to preserve user's file names
+    // Previously used timestamp-based names, but now we keep the original
     const originalName = file.originalname;
     const dir = file.fieldname === 'logo' 
       ? path.join(__dirname, '../../assets') 
       : path.join(__dirname, '../../uploads');
     
     // Check if file exists and find a unique name if needed
+    // Append (1), (2), etc. if a file with the same name exists
     let finalName = originalName;
     let counter = 1;
     
@@ -265,7 +266,7 @@ router.get('/pptx', async (req, res) => {
       const stats = await fs.stat(filepath);
       return {
         filename,
-        displayName: filename, // Original filename is now the actual filename
+        displayName: filename, // Filename is the original user's filename (not generated)
         size: stats.size,
         uploadedAt: stats.birthtime
       };

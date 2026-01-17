@@ -80,6 +80,11 @@ function escapeJs(text) {
     .replace(/\f/g, '\\f');
 }
 
+// Helper to get file type from filename
+function getFileType(filename) {
+  return filename.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+}
+
 // Logout
 function logout() {
   localStorage.removeItem('adminToken');
@@ -223,7 +228,7 @@ async function loadPPTX() {
     
     list.innerHTML = pptxFiles.map(file => {
       const displayName = file.displayName || file.filename;
-      const fileType = displayName.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+      const fileType = getFileType(displayName);
       return `
       <div class="pptx-item">
         <div class="pptx-info">
@@ -253,7 +258,7 @@ document.getElementById('pptxUploadForm').addEventListener('submit', async (e) =
       throw new Error('Keine Datei ausgewählt');
     }
     
-    const fileType = file.name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+    const fileType = getFileType(file.name);
     
     const formData = new FormData();
     formData.append('pptx', file);
@@ -275,7 +280,7 @@ async function deletePPTX(filename) {
   // Find the file object to get the display name
   const file = pptxFiles.find(f => f.filename === filename);
   const displayName = file ? (file.displayName || file.filename) : filename;
-  const fileType = displayName.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+  const fileType = getFileType(displayName);
   if (!confirm(`${fileType} "${displayName}" wirklich löschen?`)) return;
   
   try {
@@ -292,122 +297,9 @@ function updatePPTXDropdown() {
   select.innerHTML = '<option value="">Keine Präsentationsdatei</option>' +
     pptxFiles.map(f => {
       const displayName = f.displayName || f.filename;
-      const fileType = displayName.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+      const fileType = getFileType(displayName);
       return `<option value="${f.filename}">${escapeHtml(displayName)} (${fileType})</option>`;
     }).join('');
-  
-  // Add change event listener for analysis (only if not already attached)
-  if (!select.dataset.listenerAttached) {
-    select.addEventListener('change', handlePptxSelection);
-    select.dataset.listenerAttached = 'true';
-  }
-}
-
-async function handlePptxSelection(e) {
-  const filename = e.target.value;
-  if (!filename) return;
-  
-  const fileType = filename.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
-  
-  if (!confirm(`Möchten Sie die ${fileType}-Datei analysieren und automatisch Folien erstellen?`)) {
-    return;
-  }
-  
-  // Generate unique session ID using timestamp and random component
-  const tempWebinarId = 'temp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
-  
-  try {
-    showNotification(`${fileType} wird analysiert...`);
-    
-    // Start analysis
-    const { sessionId } = await apiCall(`/admin/pptx/${filename}/analyze`, {
-      method: 'POST',
-      body: { webinarId: tempWebinarId }
-    });
-    
-    // Show progress modal
-    showProgressModal(sessionId);
-    
-  } catch (error) {
-    showNotification('Fehler beim Starten der Analyse: ' + error.message, true);
-  }
-}
-
-function showProgressModal(sessionId) {
-  // Create progress modal if it doesn't exist
-  let modal = document.getElementById('progressModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'progressModal';
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <h3>Präsentation wird analysiert</h3>
-        <div class="progress-container">
-          <div class="progress-bar">
-            <div id="progressBarFill" class="progress-bar-fill"></div>
-          </div>
-          <div id="progressMessage" style="margin-top: 10px; text-align: center;"></div>
-          <div id="progressPercent" style="margin-top: 5px; text-align: center; font-weight: bold;"></div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  }
-  
-  modal.classList.remove('hidden');
-  
-  // Connect to progress stream with auth token
-  const token = localStorage.getItem('adminToken');
-  const eventSource = new EventSource(`/api/admin/pptx/analyze/progress/${sessionId}?token=${token}`);
-  
-  eventSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    
-    if (data.error) {
-      eventSource.close();
-      modal.classList.add('hidden');
-      showNotification('Fehler: ' + data.error, true);
-      return;
-    }
-    
-    // Update progress UI
-    document.getElementById('progressBarFill').style.width = data.progress + '%';
-    document.getElementById('progressMessage').textContent = data.message || '';
-    document.getElementById('progressPercent').textContent = data.progress + '%';
-    
-    if (data.status === 'completed') {
-      eventSource.close();
-      modal.classList.add('hidden');
-      
-      // Load slides into the form
-      if (data.slides && data.slides.length > 0) {
-        loadAnalyzedSlides(data.slides);
-        showNotification(`Analyse abgeschlossen! ${data.slides.length} Folien erstellt.`);
-      }
-    } else if (data.status === 'error') {
-      eventSource.close();
-      modal.classList.add('hidden');
-      showNotification('Analyse fehlgeschlagen: ' + data.message, true);
-    }
-  };
-  
-  eventSource.onerror = () => {
-    eventSource.close();
-    modal.classList.add('hidden');
-    showNotification('Verbindung zur Analyse unterbrochen', true);
-  };
-}
-
-function loadAnalyzedSlides(slides) {
-  const container = document.getElementById('slidesContainer');
-  container.innerHTML = '';
-  
-  slides.forEach(slide => {
-    addSlide(slide);
-  });
-  
-  showNotification(`${slides.length} Folien erfolgreich geladen`);
 }
 
 // ============ WEBINARS ============
@@ -591,6 +483,13 @@ document.getElementById('webinarForm').addEventListener('submit', async (e) => {
     
     const data = { title, pptxFile, slides, questions };
     
+    // Show loading message if creating new webinar with PPTX but no slides
+    const willAutoAnalyze = !id && pptxFile && slides.length === 0;
+    if (willAutoAnalyze) {
+      const fileType = getFileType(pptxFile);
+      showNotification(`Webinar wird erstellt und ${fileType} wird analysiert... Dies kann einige Sekunden dauern.`);
+    }
+    
     if (id) {
       await apiCall(`/admin/webinars/${id}`, {
         method: 'PUT',
@@ -598,11 +497,17 @@ document.getElementById('webinarForm').addEventListener('submit', async (e) => {
       });
       showNotification('Webinar erfolgreich aktualisiert');
     } else {
-      await apiCall('/admin/webinars', {
+      const result = await apiCall('/admin/webinars', {
         method: 'POST',
         body: data
       });
-      showNotification('Webinar erfolgreich erstellt');
+      
+      // Show success message with slide count if auto-analyzed
+      if (willAutoAnalyze && result.slides && result.slides.length > 0) {
+        showNotification(`Webinar erfolgreich erstellt! ${result.slides.length} Folien wurden automatisch generiert.`);
+      } else {
+        showNotification('Webinar erfolgreich erstellt');
+      }
     }
     
     closeWebinarModal();
@@ -703,7 +608,7 @@ document.getElementById('importFiles').addEventListener('change', (e) => {
       <strong>Ausgewählte Dateien (${files.length}):</strong>
       <ul style="margin: 10px 0; padding-left: 20px;">
         ${files.map(f => {
-          const fileType = f.name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+          const fileType = getFileType(f.name);
           const sizeInMB = (f.size / 1024 / 1024).toFixed(2);
           return `<li>${f.name} <span style="color: #7f8c8d;">(${fileType}, ${sizeInMB} MB)</span></li>`;
         }).join('')}
@@ -769,7 +674,7 @@ async function loadImportedFiles() {
     
     listDiv.innerHTML = files.map(file => {
       const displayName = file.displayName || file.filename;
-      const fileType = displayName.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+      const fileType = getFileType(displayName);
       return `
         <div class="pptx-item">
           <div class="pptx-info">
@@ -789,7 +694,7 @@ async function loadImportedFiles() {
 
 async function deleteImportedFile(filename, displayName) {
   const name = displayName || filename;
-  const fileType = name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
+  const fileType = getFileType(name);
   if (!confirm(`${fileType} "${name}" wirklich löschen?`)) return;
   
   try {
