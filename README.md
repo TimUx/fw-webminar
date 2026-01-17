@@ -286,6 +286,33 @@ Backup-Befehl:
 tar -czf backup-$(date +%Y%m%d).tar.gz data/ uploads/ slides/ assets/
 ```
 
+## Updates durchführen
+
+Nach einem `git pull` müssen die Docker-Container neu gebaut werden, um Code-Änderungen zu laden:
+
+```bash
+# Container stoppen
+docker compose down
+
+# Code aktualisieren
+git pull
+
+# Container mit neuem Code bauen und starten
+docker compose up -d --build
+
+# Oder falls Probleme auftreten, zuerst die Images löschen:
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
+
+**Wichtig**: Der Browser cached JavaScript- und CSS-Dateien. Nach einem Update:
+1. Browser-Cache leeren (Strg+Shift+R oder Strg+F5)
+2. Oder im Browser-DevTools "Disable cache" aktivieren
+3. Die Anwendung nutzt automatisches Cache-Busting mit Versions-Parametern
+
+**Hinweis für Entwickler**: Die Cache-Busting-Version ist aktuell manuell in HTML-Dateien gesetzt. Bei Änderungen an JS/CSS-Dateien sollte die Version aktualisiert werden, um Browser-Cache-Probleme zu vermeiden.
+
 ## Fehlerbehebung
 
 ### Häufige Docker-Warnungen

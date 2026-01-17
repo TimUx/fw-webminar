@@ -13,6 +13,9 @@ const { logAudit } = require('./utils/logger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy when behind reverse proxy (Caddy)
+app.set('trust proxy', true);
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: false, // Disable for Reveal.js and inline scripts
