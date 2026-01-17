@@ -163,7 +163,8 @@ function updateSlideCounter() {
   document.getElementById('progressFill').style.width = `${progress}%`;
   
   document.getElementById('prevSlideBtn').disabled = currentSlideIndex === 0;
-  document.getElementById('nextSlideBtn').disabled = currentSlideIndex >= totalSlides - 1;
+  // Next button is always enabled, even on last slide (to go to confirmation)
+  document.getElementById('nextSlideBtn').disabled = false;
 }
 
 // Initialize and load available voices
