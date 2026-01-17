@@ -401,6 +401,10 @@ function createQuillEditor(container, initialContent = '') {
   // Set initial content
   if (initialContent) {
     quill.root.innerHTML = initialContent;
+    // Also sync initial content to textarea so it's saved even without changes
+    if (textarea) {
+      textarea.value = initialContent;
+    }
   }
   
   // Sync Quill content back to hidden textarea (if it exists)
