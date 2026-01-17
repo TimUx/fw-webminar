@@ -69,8 +69,17 @@ async function sendResultEmail(participant, webinar, result) {
         <p>Vielen Dank für Ihre Teilnahme am Webinar:</p>
         <h3 style="color: #3498db; margin: 20px 0;">${webinar.title}</h3>
         
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;">
+          <h3 style="color: #2c3e50; margin-top: 0;">📋 Bestätigung</h3>
+          <p style="font-size: 14px; line-height: 1.6; color: #555;">
+            Sie haben bestätigt, dass Sie das Webinar vollständig durchgearbeitet und die dargestellten Inhalte sorgfältig gelesen haben. 
+            Sie haben versichert, dass Sie die vermittelten Informationen zur Kenntnis genommen und verstanden haben, 
+            und dass Ihnen keine weiteren Fragen oder Unklarheiten bezüglich der behandelten Themen offen sind.
+          </p>
+        </div>
+        
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #2c3e50; margin-top: 0;">Ihr Ergebnis:</h3>
+          <h3 style="color: #2c3e50; margin-top: 0;">📊 Ergebnis der Lernkontrolle:</h3>
           <p style="font-size: 18px;">
             <strong>Punkte:</strong> ${result.score} von ${result.totalQuestions}<br>
             <strong>Prozent:</strong> ${result.percentage}%<br>
@@ -126,10 +135,20 @@ async function sendAdminNotification(participant, webinar, result) {
         <p><strong>Webinar:</strong> ${webinar.title}</p>
         <p><strong>Teilnehmer:</strong> ${participant.name}</p>
         <p><strong>E-Mail:</strong> ${participant.email}</p>
-        <p><strong>Ergebnis:</strong> ${result.score}/${result.totalQuestions} (${result.percentage}%)</p>
+        <p><strong>Ergebnis der Lernkontrolle:</strong> ${result.score}/${result.totalQuestions} (${result.percentage}%)</p>
         <p><strong>Status:</strong> ${passed}</p>
+        <p><strong>Bestätigung:</strong> ${result.confirmed ? '✓ Erteilt' : '✗ Nicht erteilt'}</p>
         <p><strong>Zeitpunkt:</strong> ${new Date(result.completedAt).toLocaleString('de-DE')}</p>
       </div>
+      
+      ${result.confirmed ? `
+      <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #27ae60;">
+        <p style="margin: 0; color: #1b5e20; font-size: 14px;">
+          <strong>Bestätigung:</strong> Der Teilnehmer hat bestätigt, dass er das Webinar vollständig durchgearbeitet 
+          und verstanden hat, und dass keine Fragen oder Unklarheiten offen sind.
+        </p>
+      </div>
+      ` : ''}
     </div>
   `;
 

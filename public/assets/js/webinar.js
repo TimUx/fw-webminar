@@ -85,9 +85,9 @@ async function loadWebinar(id) {
     if (currentWebinar.slides && currentWebinar.slides.length > 0) {
       loadPresentation();
     } else {
-      // No slides, go directly to quiz
+      // No slides, go directly to confirmation
       document.getElementById('presentation-section').classList.add('hidden');
-      startQuiz();
+      document.getElementById('confirmation-section').classList.remove('hidden');
     }
   } catch (error) {
     console.error('Error loading webinar:', error);
@@ -139,9 +139,10 @@ function nextSlide() {
     updateSlideCounter();
     speakSlideNote(currentSlideIndex);
   } else {
-    // Last slide reached, show quiz button
+    // Last slide reached, show confirmation section
     stopSpeaking();
-    document.getElementById('startQuizBtn').style.display = 'inline-block';
+    document.getElementById('presentation-section').classList.add('hidden');
+    document.getElementById('confirmation-section').classList.remove('hidden');
   }
 }
 
@@ -425,11 +426,25 @@ function stopSpeaking() {
   indicator.classList.remove('speaking');
 }
 
+// Update confirmation button state
+function updateConfirmationButton() {
+  const checkbox = document.getElementById('confirmationCheckbox');
+  const button = document.getElementById('proceedToQuizBtn');
+  button.disabled = !checkbox.checked;
+}
+
+// Proceed to quiz after confirmation
+function proceedToQuiz() {
+  document.getElementById('confirmation-section').classList.add('hidden');
+  startQuiz();
+}
+
 // Start quiz
 function startQuiz() {
   stopSpeaking();
   
   document.getElementById('presentation-section').classList.add('hidden');
+  document.getElementById('confirmation-section').classList.add('hidden');
   document.getElementById('quiz-section').classList.remove('hidden');
   
   currentQuestionIndex = 0;
@@ -518,7 +533,8 @@ document.getElementById('participantForm').addEventListener('submit', async (e) 
       body: JSON.stringify({
         name,
         email,
-        answers: userAnswers
+        answers: userAnswers,
+        confirmed: true  // User has confirmed via checkbox
       })
     });
     
@@ -558,7 +574,7 @@ function displayResult(result) {
   if (passed) {
     messageElement.className = 'result-message success';
     messageElement.innerHTML = `
-      <strong>Glückwunsch!</strong> Sie haben das Quiz erfolgreich bestanden.<br>
+      <strong>Glückwunsch!</strong> Sie haben die Lernkontrolle erfolgreich bestanden.<br>
       Sie erhalten in Kürze eine Bestätigungs-E-Mail mit Ihrem Ergebnis.
     `;
   } else {

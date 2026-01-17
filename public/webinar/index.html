@@ -64,14 +64,46 @@
       </div>
       
       <div style="text-align: center; margin-top: 30px;">
-        <button id="startQuizBtn" onclick="startQuiz()" style="display: none;">Zum Quiz →</button>
+        <button id="startQuizBtn" onclick="startQuiz()" style="display: none;">Zur Lernkontrolle →</button>
       </div>
     </div>
   </section>
   
-  <!-- Quiz Section -->
+  <!-- Confirmation Section -->
+  <section id="confirmation-section" class="hidden">
+    <h2>📋 Bestätigung</h2>
+    
+    <div class="confirmation-container">
+      <div class="confirmation-text">
+        <p>
+          Hiermit bestätige ich, dass ich das vorliegende Webinar vollständig durchgearbeitet und die dargestellten Inhalte sorgfältig gelesen habe. 
+          Ich versichere, dass ich die vermittelten Informationen zur Kenntnis genommen und verstanden habe.
+        </p>
+        <p>
+          Ich bestätige weiterhin, dass mir der Inhalt klar und verständlich dargelegt wurde und ich keine weiteren Fragen oder Unklarheiten bezüglich der behandelten Themen habe. 
+          Sollten im Nachhinein Fragen auftreten, werde ich mich eigenständig um deren Klärung bemühen.
+        </p>
+        <p>
+          Mit dieser Bestätigung erkläre ich mich bereit, mein Wissen in der folgenden Lernkontrolle unter Beweis zu stellen.
+        </p>
+      </div>
+      
+      <div class="confirmation-checkbox-container">
+        <label class="confirmation-checkbox-label">
+          <input type="checkbox" id="confirmationCheckbox" onchange="updateConfirmationButton()">
+          <span>Ja, ich habe das Webinar vollständig gelesen und verstanden. Mir sind keine Fragen oder Unklarheiten offen.</span>
+        </label>
+      </div>
+      
+      <div class="confirmation-button-container">
+        <button id="proceedToQuizBtn" onclick="proceedToQuiz()" disabled>Weiter zur Lernkontrolle →</button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Lernkontrolle Section -->
   <section id="quiz-section" class="hidden">
-    <h2>📝 Quiz</h2>
+    <h2>📝 Lernkontrolle</h2>
     
     <div class="quiz-container">
       <div id="quizContent"></div>
@@ -80,7 +112,7 @@
         <button id="prevQuestionBtn" onclick="previousQuestion()" style="display: none;">◀ Vorherige Frage</button>
         <div style="flex: 1;"></div>
         <button id="nextQuestionBtn" onclick="nextQuestion()">Nächste Frage ▶</button>
-        <button id="finishQuizBtn" onclick="finishQuiz()" style="display: none;">Quiz abschließen</button>
+        <button id="finishQuizBtn" onclick="finishQuiz()" style="display: none;">Lernkontrolle abschließen</button>
       </div>
     </div>
   </section>

@@ -189,7 +189,7 @@ button:disabled {
   text-align: center;
 }
 
-/* Quiz Section */
+/* Lernkontrolle Section */
 .quiz-container {
   max-width: 800px;
   margin: 0 auto;
@@ -396,6 +396,73 @@ button:disabled {
 
 .narration-icon {
   font-size: 24px;
+}
+
+/* Confirmation Section */
+.confirmation-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.confirmation-text {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  border-left: 4px solid #3498db;
+  line-height: 1.8;
+}
+
+.confirmation-text p {
+  margin-bottom: 15px;
+  color: #2c3e50;
+  font-size: 16px;
+  text-align: justify;
+}
+
+.confirmation-text p:last-child {
+  margin-bottom: 0;
+}
+
+.confirmation-checkbox-container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  margin-bottom: 25px;
+}
+
+.confirmation-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.confirmation-checkbox-label input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.confirmation-checkbox-label span {
+  font-size: 16px;
+  color: #2c3e50;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.confirmation-button-container {
+  text-align: center;
+}
+
+.confirmation-button-container button {
+  padding: 15px 40px;
+  font-size: 18px;
+  min-width: 250px;
 }
 
 /* Voice Controls */

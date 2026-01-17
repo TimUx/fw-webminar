@@ -71,12 +71,12 @@ router.get('/:id', async (req, res) => {
 
 /**
  * POST /api/webinar/:id/submit
- * Submit quiz results
+ * Submit learning control results
  */
 router.post('/:id/submit', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, answers } = req.body;
+    const { name, email, answers, confirmed } = req.body;
     
     if (!name || !email || !answers) {
       return res.status(400).json({ error: 'Name, E-Mail und Antworten erforderlich' });
@@ -122,6 +122,7 @@ router.post('/:id/submit', async (req, res) => {
       percentage,
       passed,
       answers,
+      confirmed: confirmed || false,
       completedAt: new Date().toISOString()
     };
     
