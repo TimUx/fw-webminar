@@ -213,6 +213,63 @@ h3 {
   resize: vertical;
 }
 
+/* Quill Editor Styles */
+.quill-editor-container {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.quill-editor-container .ql-toolbar {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  /* Allow toolbar to wrap to multiple lines */
+  flex-wrap: wrap;
+}
+
+/* Custom table button icon */
+.ql-toolbar .ql-table::before {
+  content: "⊞";
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.quill-editor-container .ql-container {
+  min-height: 400px;
+  font-size: 16px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.quill-editor-container .ql-editor {
+  min-height: 400px;
+}
+
+.quill-editor-container .ql-editor.ql-blank::before {
+  color: #999;
+  font-style: italic;
+}
+
+/* Style tables in the editor */
+.quill-editor-container .ql-editor table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.quill-editor-container .ql-editor table td,
+.quill-editor-container .ql-editor table th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.quill-editor-container .ql-editor table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  text-align: left;
+}
+
 .form-group small {
   display: block;
   margin-top: 5px;

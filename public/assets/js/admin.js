@@ -1,6 +1,7 @@
 const API_BASE = '/api';
 let currentWebinar = null;
 let pptxFiles = [];
+let quillEditors = []; // Store Quill editor instances
 
 // Check authentication
 const token = localStorage.getItem('adminToken');
@@ -78,6 +79,154 @@ function escapeJs(text) {
     .replace(/\t/g, '\\t')
     .replace(/\0/g, '\\0')
     .replace(/\f/g, '\\f');
+}
+
+// Helper to upload image for Quill editor
+async function uploadImageToServer(file) {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await fetch(`${API_BASE}/admin/slides/upload-image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Upload failed');
+    }
+    
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Image upload error:', error);
+    showNotification('Fehler beim Hochladen des Bildes: ' + error.message, true);
+    throw error;
+  }
+}
+
+// Helper to insert a simple table in Quill
+function insertTable(quill) {
+  const rows = prompt('Anzahl der Zeilen:', '3');
+  const cols = prompt('Anzahl der Spalten:', '3');
+  
+  if (rows && cols) {
+    const numRows = parseInt(rows);
+    const numCols = parseInt(cols);
+    
+    if (numRows > 0 && numCols > 0) {
+      let tableHTML = '<table style="border-collapse: collapse; width: 100%; border: 1px solid #ddd;">\n';
+      
+      for (let i = 0; i < numRows; i++) {
+        tableHTML += '  <tr>\n';
+        for (let j = 0; j < numCols; j++) {
+          const tag = i === 0 ? 'th' : 'td';
+          tableHTML += `    <${tag} style="border: 1px solid #ddd; padding: 8px;">${tag === 'th' ? 'Kopfzeile' : 'Zelle'}</${tag}>\n`;
+        }
+        tableHTML += '  </tr>\n';
+      }
+      tableHTML += '</table>\n<p><br></p>';
+      
+      const range = quill.getSelection(true);
+      quill.clipboard.dangerouslyPasteHTML(range.index, tableHTML);
+      quill.setSelection(range.index + 1);
+    }
+  }
+}
+
+// Helper to create Quill editor with image upload and tables
+function createQuillEditor(container, initialContent = '') {
+  const editorDiv = document.createElement('div');
+  editorDiv.className = 'quill-editor-container';
+  
+  // Replace textarea with Quill editor
+  const textarea = container.querySelector('.slide-content');
+  if (textarea) {
+    textarea.style.display = 'none';
+    textarea.parentNode.insertBefore(editorDiv, textarea);
+  } else {
+    container.appendChild(editorDiv);
+  }
+  
+  // Initialize Quill with custom toolbar including headings and table
+  const quill = new Quill(editorDiv, {
+    theme: 'snow',
+    placeholder: 'Folieninhalt eingeben... Sie können Text formatieren, Tabellen und Bilder hinzufügen.',
+    modules: {
+      toolbar: {
+        container: [
+          // First row: Headings and basic formatting
+          [{ 'header': [2, 3, 4, 5, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'color': [] }, { 'background': [] }],
+          
+          // Second row: Lists and alignment
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'align': [] }],
+          
+          // Third row: Links, images, tables
+          ['link', 'image', 'table'],
+          ['clean']
+        ],
+        handlers: {
+          image: function() {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+            
+            input.onchange = async () => {
+              const file = input.files[0];
+              if (file) {
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                  showNotification('Bild ist zu groß. Maximale Größe: 5MB', true);
+                  return;
+                }
+                
+                // Show loading notification
+                showNotification('Bild wird hochgeladen...');
+                
+                try {
+                  const url = await uploadImageToServer(file);
+                  
+                  // Insert image into editor
+                  const range = this.quill.getSelection(true);
+                  this.quill.insertEmbed(range.index, 'image', url);
+                  this.quill.setSelection(range.index + 1);
+                  
+                  showNotification('Bild erfolgreich hochgeladen');
+                } catch (error) {
+                  // Error notification already shown in uploadImageToServer
+                }
+              }
+            };
+          },
+          table: function() {
+            insertTable(this.quill);
+          }
+        }
+      }
+    }
+  });
+  
+  // Set initial content
+  if (initialContent) {
+    quill.root.innerHTML = initialContent;
+  }
+  
+  // Sync Quill content back to hidden textarea (if it exists)
+  if (textarea) {
+    quill.on('text-change', () => {
+      textarea.value = quill.root.innerHTML;
+    });
+  }
+  
+  return quill;
 }
 
 // Helper to get file type from filename
@@ -335,6 +484,9 @@ async function loadWebinars() {
 
 function showCreateWebinar() {
   currentWebinar = null;
+  // Clear Quill editors array
+  quillEditors = [];
+  
   document.getElementById('modalTitle').textContent = 'Neues Webinar';
   document.getElementById('webinarId').value = '';
   document.getElementById('webinarTitle').value = '';
@@ -349,6 +501,9 @@ function showCreateWebinar() {
 async function editWebinar(id) {
   try {
     currentWebinar = await apiCall(`/admin/webinars/${id}`);
+    
+    // Clear Quill editors array
+    quillEditors = [];
     
     document.getElementById('modalTitle').textContent = 'Webinar bearbeiten';
     document.getElementById('webinarId').value = currentWebinar.id;
@@ -379,6 +534,9 @@ async function editWebinar(id) {
 function closeWebinarModal() {
   document.getElementById('webinarModal').classList.add('hidden');
   currentWebinar = null;
+  
+  // Clear Quill editors when closing modal
+  quillEditors = [];
 }
 
 function viewWebinar(id) {
@@ -407,20 +565,39 @@ function addSlide(slide = null) {
   div.innerHTML = `
     <div class="form-group">
       <label>Folien-Titel</label>
-      <input type="text" class="slide-title" value="${slide?.title || ''}" placeholder="Folie ${index + 1}">
+      <input type="text" class="slide-title" value="${escapeHtml(slide?.title || '')}" placeholder="Folie ${index + 1}">
     </div>
     <div class="form-group">
-      <label>Inhalt</label>
-      <textarea class="slide-content" placeholder="Folieninhalt (HTML erlaubt)">${slide?.content || ''}</textarea>
+      <label>Inhalt (WYSIWYG Editor mit Bildupload und Tabellen)</label>
+      <textarea class="slide-content" style="display:none;">${slide?.content || ''}</textarea>
     </div>
     <div class="form-group">
       <label>Sprechernotiz (für Sprachausgabe)</label>
-      <textarea class="slide-note" placeholder="Text für automatische Sprachausgabe">${slide?.speakerNote || ''}</textarea>
+      <textarea class="slide-note" placeholder="Text für automatische Sprachausgabe">${escapeHtml(slide?.speakerNote || '')}</textarea>
     </div>
-    <button type="button" class="btn-danger" onclick="this.parentElement.remove()">Folie entfernen</button>
+    <button type="button" class="btn-danger" onclick="removeSlide(this)">Folie entfernen</button>
   `;
   
   container.appendChild(div);
+  
+  // Initialize Quill editor for this slide's content
+  const contentContainer = div.querySelector('.form-group:nth-child(2)');
+  const quillEditor = createQuillEditor(contentContainer, slide?.content || '');
+  quillEditors.push(quillEditor);
+}
+
+// Helper function to remove a slide and its Quill editor
+function removeSlide(button) {
+  const slideItem = button.parentElement;
+  const container = document.getElementById('slidesContainer');
+  const slideIndex = Array.from(container.children).indexOf(slideItem);
+  
+  // Remove the corresponding Quill editor from our tracking array
+  if (slideIndex >= 0 && slideIndex < quillEditors.length) {
+    quillEditors.splice(slideIndex, 1);
+  }
+  
+  slideItem.remove();
 }
 
 // Question management
@@ -461,12 +638,19 @@ document.getElementById('webinarForm').addEventListener('submit', async (e) => {
     const title = document.getElementById('webinarTitle').value;
     const pptxFile = document.getElementById('webinarPptx').value;
     
-    // Collect slides
-    const slides = Array.from(document.querySelectorAll('.slide-item')).map(item => ({
-      title: item.querySelector('.slide-title').value,
-      content: item.querySelector('.slide-content').value,
-      speakerNote: item.querySelector('.slide-note').value
-    }));
+    // Collect slides - get content from Quill editors
+    const slideItems = Array.from(document.querySelectorAll('.slide-item'));
+    const slides = slideItems.map((item, index) => {
+      // Get content from the hidden textarea (which is synced with Quill)
+      const contentTextarea = item.querySelector('.slide-content');
+      const content = contentTextarea ? contentTextarea.value : '';
+      
+      return {
+        title: item.querySelector('.slide-title').value,
+        content: content,
+        speakerNote: item.querySelector('.slide-note').value
+      };
+    });
     
     // Collect questions
     const questions = Array.from(document.querySelectorAll('.question-item')).map((item, qIndex) => {

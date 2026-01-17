@@ -597,4 +597,58 @@ router.get('/results/export', async (req, res) => {
   }
 });
 
+// ============ SLIDE IMAGE UPLOAD ============
+
+/**
+ * POST /api/admin/slides/upload-image
+ * Upload image for slide content (used by WYSIWYG editor)
+ */
+const imageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(__dirname, '../../uploads/slide-images');
+      // Ensure directory exists
+      fsSync.mkdir(dir, { recursive: true }, (err) => {
+        if (err) {
+          return cb(err);
+        }
+        cb(null, dir);
+      });
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename with timestamp
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      cb(null, 'slide-' + uniqueSuffix + ext);
+    }
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+      return cb(new Error('Nur Bilddateien sind erlaubt (JPG, PNG, GIF, WEBP, SVG)'));
+    }
+    cb(null, true);
+  }
+});
+
+router.post('/slides/upload-image', imageUpload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Keine Bilddatei hochgeladen' });
+    }
+    
+    const imageUrl = `/uploads/slide-images/${req.file.filename}`;
+    
+    logAudit('SLIDE_IMAGE_UPLOAD', req.user.username, `Slide-Bild hochgeladen: ${req.file.filename}`);
+    res.json({ 
+      url: imageUrl,
+      filename: req.file.filename,
+      size: req.file.size
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({ error: 'Fehler beim Hochladen des Bildes' });
+  }
+});
+
 module.exports = router;
