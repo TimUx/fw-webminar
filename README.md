@@ -172,7 +172,23 @@ Caddy richtet automatisch Let's Encrypt HTTPS ein.
    - **PDF**: Seiten werden als Bilder extrahiert (mit pdftoppm) und in `uploads/` gespeichert
    - **PPTX**: Bilder und Grafiken werden extrahiert und in `uploads/` gespeichert
    - Alle extrahierten Bilder werden automatisch den entsprechenden Folien zugeordnet
+   - **Intelligente Filterung**: Wiederkehrende Inhalte (Kopf-/Fußzeilen, Logos, Seitenzahlen, Datumsangaben) werden automatisch erkannt und entfernt
    - Bei fehlenden Tools (pdftoppm): Fallback auf Textextraktion
+
+#### Automatische Filterung von wiederkehrenden Inhalten
+
+Das System erkennt und entfernt automatisch:
+- **Kopf- und Fußzeilen**: Text, der auf mehreren Folien/Seiten wiederholt wird
+- **Logos und Hintergrundbilder**: Bilder, die auf den meisten Folien erscheinen
+- **Seitenzahlen**: Muster wie "Seite 1", "Page 2", "1/10", reine Zahlen
+- **Datumsangaben**: Verschiedene Datumsformate (01.01.2024, 12/31/2024)
+- **Copyright-Hinweise**: z.B. "© 2024"
+- **Firmen-/Organisationsnamen**: Die auf allen Folien erscheinen
+
+Die Filterung erfolgt intelligent:
+- Nur Inhalte, die auf mindestens 60% der Folien vorkommen, werden als repetitiv erkannt
+- Für bekannte Muster (Seitenzahlen, Datum) gilt eine niedrigere Schwelle von 30%
+- Themenspezifische Inhalte (Titel, Texte, Listen, Tabellen, Grafiken) bleiben erhalten
 
 ## Sprachausgabe-Einstellungen
 
@@ -419,6 +435,15 @@ Pull Requests sind willkommen!
 Design basiert auf: https://github.com/TimUx/fw-fragenkatalog
 
 ## Changelog
+
+### Version 1.2.0 (2026)
+- **Intelligente Filterung von wiederkehrenden Inhalten**
+  - Automatische Erkennung von Kopf- und Fußzeilen in PPTX/PDF
+  - Entfernung von wiederkehrenden Logos und Hintergrundbildern
+  - Filterung von Seitenzahlen, Datumsangaben und Copyright-Hinweisen
+  - Erkennung von Firmen-/Organisationsnamen auf allen Folien
+  - Konfigurierbare Erkennungsschwellen (60% für allgemeine Inhalte, 30% für bekannte Muster)
+  - Erhaltung aller themenspezifischen Inhalte (Titel, Texte, Listen, Tabellen, Grafiken)
 
 ### Version 1.1.0 (2026)
 - **Verbesserte Sprachausgabe**
