@@ -1,9 +1,6 @@
-const { exec } = require('child_process');
-const { promisify } = require('util');
 const fs = require('fs').promises;
 const path = require('path');
-
-const execAsync = promisify(exec);
+const { spawnAsync } = require('../utils/process');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
 const SLIDES_DIR = process.env.SLIDES_DIR || path.join(__dirname, '../../slides');
@@ -70,8 +67,10 @@ async function convertPPTXToHTML(pptxFilename, webinarId) {
   // This assumes LibreOffice is available (via Docker or locally)
   try {
     // LibreOffice headless conversion
-    const { stdout, stderr } = await execAsync(
-      `libreoffice --headless --convert-to html --outdir "${outputDir}" "${pptxPath}"`,
+    // Using spawn with separate arguments to prevent command injection
+    const { stdout, stderr } = await spawnAsync(
+      'libreoffice',
+      ['--headless', '--convert-to', 'html', '--outdir', outputDir, pptxPath],
       { timeout: 60000 }
     );
     
@@ -110,8 +109,11 @@ async function convertPDFToSlides(pdfFilename, webinarId) {
   
   try {
     // Try using pdftoppm (from poppler-utils) to convert PDF to images
-    const { stdout, stderr } = await execAsync(
-      `pdftoppm "${pdfPath}" "${outputDir}/slide" -png`,
+    // Using spawn with separate arguments to prevent command injection
+    const outputPrefix = path.join(outputDir, 'slide');
+    const { stdout, stderr } = await spawnAsync(
+      'pdftoppm',
+      [pdfPath, outputPrefix, '-png'],
       { timeout: 120000 }
     );
     

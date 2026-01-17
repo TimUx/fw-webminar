@@ -169,9 +169,10 @@ Caddy richtet automatisch Let's Encrypt HTTPS ein.
 1. Präsentationsdatei (PPTX oder PDF) im Bereich "Präsentationen" hochladen
 2. Bei Webinar-Erstellung Präsentationsdatei auswählen
 3. System konvertiert automatisch:
-   - **PDF**: Wird in einzelne Bilder umgewandelt (mit pdftoppm)
-   - **PPTX**: Wird mit LibreOffice konvertiert
-   - Bei fehlenden Tools: Manuelle Slides verwenden
+   - **PDF**: Seiten werden als Bilder extrahiert (mit pdftoppm) und in `uploads/` gespeichert
+   - **PPTX**: Bilder und Grafiken werden extrahiert und in `uploads/` gespeichert
+   - Alle extrahierten Bilder werden automatisch den entsprechenden Folien zugeordnet
+   - Bei fehlenden Tools (pdftoppm): Fallback auf Textextraktion
 
 ## Sprachausgabe-Einstellungen
 
@@ -229,9 +230,11 @@ fw-webminar/
 │   ├── webinars.json
 │   ├── results.json
 │   └── audit.log
-├── uploads/             # Hochgeladene PPTX
-├── slides/              # Generierte Präsentationen
-├── assets/              # Logos, Theme
+├── uploads/             # Hochgeladene PPTX/PDF und extrahierte Bilder
+│   ├── file.pptx        # Hochgeladene Präsentationsdateien
+│   └── webinar-id/      # Extrahierte Bilder pro Webinar
+├── slides/              # Generierte Präsentationen (HTML)
+├── assets/              # Logos, Theme-Bilder
 ├── docker-compose.yml   # Docker-Konfiguration
 ├── Dockerfile           # Backend-Container
 ├── Caddyfile           # Caddy-Konfiguration
@@ -277,7 +280,7 @@ fw-webminar/
 
 Wichtige Daten liegen in:
 - `./data/` - Alle JSON-Dateien
-- `./uploads/` - Hochgeladene PPTX
+- `./uploads/` - Hochgeladene PPTX/PDF und extrahierte Bilder
 - `./slides/` - Generierte Präsentationen
 - `./assets/` - Logos und Assets
 

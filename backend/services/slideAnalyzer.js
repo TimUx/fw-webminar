@@ -3,6 +3,7 @@ const fsSync = require('fs');
 const path = require('path');
 const JSZip = require('jszip');
 const pdfParse = require('pdf-parse');
+const { spawnAsync } = require('../utils/process');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
 const ASSETS_DIR = process.env.ASSETS_DIR || path.join(__dirname, '../../assets');
@@ -64,7 +65,7 @@ function extractTextFromSlideXML(xml) {
  */
 async function extractImagesFromPPTX(zip, webinarId) {
   const images = [];
-  const imageDir = path.join(ASSETS_DIR, webinarId);
+  const imageDir = path.join(UPLOADS_DIR, webinarId);
   
   // Create directory for images
   await fs.mkdir(imageDir, { recursive: true });
@@ -86,7 +87,7 @@ async function extractImagesFromPPTX(zip, webinarId) {
     images.push({
       originalPath: filename,
       filename: imageName,
-      publicPath: `/assets/${webinarId}/${imageName}`
+      publicPath: `/uploads/${webinarId}/${imageName}`
     });
   }
   
@@ -236,7 +237,41 @@ function formatSlideContent(text, images) {
 }
 
 /**
- * Analyze PDF file and extract pages
+ * Extract PDF pages as images using pdftoppm
+ */
+async function extractPDFImages(filename, webinarId) {
+  const pdfPath = path.join(UPLOADS_DIR, filename);
+  const imageDir = path.join(UPLOADS_DIR, webinarId);
+  
+  // Create directory for images
+  await fs.mkdir(imageDir, { recursive: true });
+  
+  try {
+    // Use pdftoppm to convert PDF pages to PNG images
+    // Using spawn with separate arguments to prevent command injection
+    const outputPrefix = path.join(imageDir, 'page');
+    await spawnAsync('pdftoppm', [pdfPath, outputPrefix, '-png'], { timeout: 120000 });
+    
+    // Find generated images
+    const files = await fs.readdir(imageDir);
+    const imageFiles = files.filter(f => f.startsWith('page') && f.endsWith('.png')).sort();
+    
+    // Return image metadata
+    return imageFiles.map((filename, index) => ({
+      originalPath: `${imageDir}/${filename}`,
+      filename: filename,
+      publicPath: `/uploads/${webinarId}/${filename}`,
+      pageNumber: index + 1
+    }));
+  } catch (error) {
+    console.error('PDF image extraction error:', error);
+    // Return empty array if extraction fails
+    return [];
+  }
+}
+
+/**
+ * Analyze PDF file and extract pages with images
  */
 async function analyzePDF(filename, webinarId, onProgress) {
   const filePath = path.join(UPLOADS_DIR, filename);
@@ -244,31 +279,46 @@ async function analyzePDF(filename, webinarId, onProgress) {
   
   onProgress(10, 'PDF-Datei geladen...');
   
-  // Parse PDF
+  // Parse PDF for text content
   const pdfData = await pdfParse(dataBuffer);
   
-  onProgress(40, `PDF analysiert: ${pdfData.numpages} Seiten gefunden...`);
+  onProgress(30, `PDF analysiert: ${pdfData.numpages} Seiten gefunden...`);
   
-  // For PDF, we'll use pdftoppm to convert to images
-  // This is handled separately, so we'll create placeholder slides
-  const slides = [];
-  const progressPerPage = 50 / pdfData.numpages;
+  // Extract PDF pages as images
+  const pdfImages = await extractPDFImages(filename, webinarId);
+  
+  onProgress(60, `${pdfImages.length} Seiten als Bilder extrahiert...`);
   
   // Split text by pages (approximation)
   const textPages = splitTextIntoPages(pdfData.text, pdfData.numpages);
   
+  const slides = [];
+  const progressPerPage = 30 / pdfData.numpages;
+  
   for (let i = 0; i < pdfData.numpages; i++) {
     const pageText = textPages[i] || '';
+    const pageImage = pdfImages.find(img => img.pageNumber === i + 1);
+    
+    // Build content with image if available
+    let content = '';
+    if (pageImage) {
+      content = `<img src="${pageImage.publicPath}" alt="Seite ${i + 1}" style="max-width: 100%; height: auto;">`;
+    } else {
+      // Fallback to text preview if image extraction failed
+      content = `<p>${escapeHtml(pageText.trim().substring(0, PDF_TEXT_PREVIEW_LENGTH))}</p>`;
+      if (pdfImages.length === 0) {
+        content += `<p><em>Hinweis: PDF-Bilder konnten nicht extrahiert werden. Bitte stellen Sie sicher, dass pdftoppm (poppler-utils) installiert ist.</em></p>`;
+      }
+    }
     
     slides.push({
       title: `Seite ${i + 1}`,
-      content: `<p>${escapeHtml(pageText.trim().substring(0, PDF_TEXT_PREVIEW_LENGTH))}</p>
-                <p><em>Hinweis: PDF-Seiten werden als Text extrahiert. Für eine vollständige Darstellung mit Bildern und Layout verwenden Sie bitte PPTX-Dateien.</em></p>`,
+      content: content,
       speakerNote: pageText.trim(),
-      images: []
+      images: pageImage ? [pageImage] : []
     });
     
-    onProgress(40 + (progressPerPage * (i + 1)), `Seite ${i + 1}/${pdfData.numpages} verarbeitet...`);
+    onProgress(60 + (progressPerPage * (i + 1)), `Seite ${i + 1}/${pdfData.numpages} verarbeitet...`);
   }
   
   onProgress(95, 'PDF-Analyse abgeschlossen...');
