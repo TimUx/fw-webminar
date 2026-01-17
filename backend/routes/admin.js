@@ -86,8 +86,6 @@ const storage = multer.diskStorage({
       ? path.join(__dirname, '../../assets') 
       : path.join(__dirname, '../../uploads');
     
-    const baseFilePath = path.join(dir, originalName);
-    
     // Check if file exists and find a unique name if needed
     let finalName = originalName;
     let counter = 1;
@@ -400,7 +398,6 @@ router.post('/webinars', async (req, res) => {
     // If pptxFile is provided but no slides, automatically analyze and generate slides
     if (pptxFile && (!slides || slides.length === 0)) {
       try {
-        const { analyzePresentation } = require('../services/slideAnalyzer');
         const sessionId = `${webinar.id}-${Date.now()}`;
         
         logAudit('FILE_ANALYZE', req.user.username, `Auto-analysiere: ${pptxFile} für Webinar: ${title}`);
