@@ -21,5 +21,5 @@ RUN mkdir -p /app/data /app/uploads /app/slides /app/assets
 # Expose port
 EXPOSE 3000
 
-# Start application
-CMD ["npm", "start"]
+# Start application directly with node (not npm) to properly handle SIGTERM
+CMD ["node", "backend/server.js"]
