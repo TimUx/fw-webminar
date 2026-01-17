@@ -197,19 +197,30 @@ function createQuillEditor(container, initialContent = '') {
                 try {
                   const url = await uploadImageToServer(file);
                   
-                  // Insert image into editor with medium size by default
+                  // Insert image into editor
                   const range = this.quill.getSelection(true);
                   this.quill.insertEmbed(range.index, 'image', url);
                   this.quill.setSelection(range.index + 1);
                   
                   // Apply medium size class to the newly inserted image
-                  setTimeout(() => {
+                  // Use nextTick to ensure DOM is updated
+                  const applyDefaultSize = () => {
                     const images = this.quill.root.querySelectorAll('img');
-                    const newImage = images[images.length - 1];
-                    if (newImage) {
-                      newImage.classList.add('img-medium');
+                    for (let i = images.length - 1; i >= 0; i--) {
+                      const img = images[i];
+                      if (img.src === url && !img.classList.contains('img-small') && 
+                          !img.classList.contains('img-medium') && 
+                          !img.classList.contains('img-large') && 
+                          !img.classList.contains('img-full')) {
+                        img.classList.add('img-medium');
+                        break;
+                      }
                     }
-                  }, 100);
+                  };
+                  
+                  // Try immediately, then with small delay as fallback
+                  applyDefaultSize();
+                  requestAnimationFrame(() => applyDefaultSize());
                   
                   showNotification('Bild erfolgreich hochgeladen');
                 } catch (error) {
@@ -297,109 +308,94 @@ function createQuillEditor(container, initialContent = '') {
   `;
   toolbarContainer.appendChild(columnsGroup);
   
-  // Add event listeners for image sizing buttons
-  toolbarContainer.querySelector('.ql-image-small').addEventListener('click', () => {
+  // Helper function to set image size
+  const setImageSize = (className, displayName) => {
     if (selectedImage) {
       selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
-      selectedImage.classList.add('img-small');
-      showNotification('Bildgröße auf "klein" gesetzt');
+      if (className) {
+        selectedImage.classList.add(className);
+      }
+      showNotification(`Bildgröße auf "${displayName}" gesetzt`);
     } else {
       showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
     }
+  };
+  
+  // Helper function to set image float
+  const setImageFloat = (className, displayName) => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-float-left', 'img-float-right');
+      if (className) {
+        selectedImage.classList.add(className);
+      }
+      showNotification(displayName);
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  };
+  
+  // Helper function to insert columns safely
+  const insertColumns = (numColumns, displayName) => {
+    const range = quill.getSelection(true);
+    if (range) {
+      // Create container div
+      const columnsDiv = document.createElement('div');
+      columnsDiv.className = `columns-${numColumns}`;
+      
+      // Create column divs
+      for (let i = 0; i < numColumns; i++) {
+        const columnDiv = document.createElement('div');
+        columnDiv.className = 'column';
+        const p = document.createElement('p');
+        p.textContent = `Spalte ${i + 1}`;
+        columnDiv.appendChild(p);
+        columnsDiv.appendChild(columnDiv);
+      }
+      
+      // Insert using Quill's clipboard for safer HTML insertion
+      quill.clipboard.dangerouslyPasteHTML(range.index, columnsDiv.outerHTML + '<p><br></p>');
+      quill.setSelection(range.index + 1);
+      showNotification(displayName);
+    }
+  };
+  
+  // Add event listeners for image sizing buttons
+  toolbarContainer.querySelector('.ql-image-small').addEventListener('click', () => {
+    setImageSize('img-small', 'klein');
   });
   
   toolbarContainer.querySelector('.ql-image-medium').addEventListener('click', () => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
-      selectedImage.classList.add('img-medium');
-      showNotification('Bildgröße auf "mittel" gesetzt');
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
+    setImageSize('img-medium', 'mittel');
   });
   
   toolbarContainer.querySelector('.ql-image-large').addEventListener('click', () => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
-      selectedImage.classList.add('img-large');
-      showNotification('Bildgröße auf "groß" gesetzt');
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
+    setImageSize('img-large', 'groß');
   });
   
   toolbarContainer.querySelector('.ql-image-full').addEventListener('click', () => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
-      selectedImage.classList.add('img-full');
-      showNotification('Bildgröße auf "volle Breite" gesetzt');
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
+    setImageSize('img-full', 'volle Breite');
   });
   
   // Add event listeners for image alignment buttons
   toolbarContainer.querySelector('.ql-image-float-left').addEventListener('click', () => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-float-left', 'img-float-right');
-      selectedImage.classList.add('img-float-left');
-      showNotification('Bild links ausgerichtet mit Textumfluss');
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
+    setImageFloat('img-float-left', 'Bild links ausgerichtet mit Textumfluss');
   });
   
   toolbarContainer.querySelector('.ql-image-float-right').addEventListener('click', () => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-float-left', 'img-float-right');
-      selectedImage.classList.add('img-float-right');
-      showNotification('Bild rechts ausgerichtet mit Textumfluss');
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
+    setImageFloat('img-float-right', 'Bild rechts ausgerichtet mit Textumfluss');
   });
   
   toolbarContainer.querySelector('.ql-image-float-none').addEventListener('click', () => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-float-left', 'img-float-right');
-      showNotification('Textumfluss entfernt');
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
+    setImageFloat(null, 'Textumfluss entfernt');
   });
   
   // Add event listeners for column layout buttons
   toolbarContainer.querySelector('.ql-columns-2').addEventListener('click', () => {
-    const range = quill.getSelection(true);
-    if (range) {
-      const columnsHTML = `
-        <div class="columns-2">
-          <div class="column"><p>Spalte 1</p></div>
-          <div class="column"><p>Spalte 2</p></div>
-        </div>
-        <p><br></p>
-      `;
-      quill.clipboard.dangerouslyPasteHTML(range.index, columnsHTML);
-      quill.setSelection(range.index + 1);
-      showNotification('2-Spalten-Layout eingefügt');
-    }
+    insertColumns(2, '2-Spalten-Layout eingefügt');
   });
   
   toolbarContainer.querySelector('.ql-columns-3').addEventListener('click', () => {
-    const range = quill.getSelection(true);
-    if (range) {
-      const columnsHTML = `
-        <div class="columns-3">
-          <div class="column"><p>Spalte 1</p></div>
-          <div class="column"><p>Spalte 2</p></div>
-          <div class="column"><p>Spalte 3</p></div>
-        </div>
-        <p><br></p>
-      `;
-      quill.clipboard.dangerouslyPasteHTML(range.index, columnsHTML);
-      quill.setSelection(range.index + 1);
-      showNotification('3-Spalten-Layout eingefügt');
-    }
+    insertColumns(3, '3-Spalten-Layout eingefügt');
   });
   
   // Set initial content
