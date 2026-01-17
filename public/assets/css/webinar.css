@@ -158,16 +158,19 @@ button:disabled {
   position: relative;
   width: 100%;
   background: #000;
+  max-height: calc(100vh - 400px); /* Subtract header, controls, and padding */
 }
 
 /* 16:9 aspect ratio (default) */
 .aspect-ratio-container.ratio-16-9 {
   padding-bottom: 56.25%; /* 9/16 = 0.5625 */
+  max-height: calc(100vh - 400px);
 }
 
 /* 4:3 aspect ratio */
 .aspect-ratio-container.ratio-4-3 {
   padding-bottom: 75%; /* 3/4 = 0.75 */
+  max-height: calc(100vh - 400px);
 }
 
 .presentation-frame {

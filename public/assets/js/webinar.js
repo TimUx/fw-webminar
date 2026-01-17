@@ -430,6 +430,18 @@ function speakSlideNote(slideIndex) {
 
 // Speak text chunks sequentially for better flow
 function speakChunks(chunks, index) {
+  // Check if muted before speaking next chunk
+  if (isMuted) {
+    // Stop narration if muted
+    const indicator = document.getElementById('narrationIndicator');
+    indicator.classList.add('hidden');
+    indicator.classList.remove('speaking');
+    
+    narrationComplete = true;
+    updateSlideCounter();
+    return;
+  }
+  
   if (index >= chunks.length) {
     // All chunks spoken - narration complete
     const indicator = document.getElementById('narrationIndicator');
@@ -463,6 +475,17 @@ function speakChunks(chunks, index) {
   }
   
   currentUtterance.onend = () => {
+    // Check mute state before continuing to next chunk
+    if (isMuted) {
+      const indicator = document.getElementById('narrationIndicator');
+      indicator.classList.add('hidden');
+      indicator.classList.remove('speaking');
+      
+      narrationComplete = true;
+      updateSlideCounter();
+      return;
+    }
+    
     // Add a small pause between chunks for more natural flow
     setTimeout(() => {
       speakChunks(chunks, index + 1);

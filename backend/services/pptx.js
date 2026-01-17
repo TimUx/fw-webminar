@@ -12,25 +12,25 @@ function getCommonPresentationStyles() {
   return `
     .reveal {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-size: 28px;
+      font-size: clamp(16px, 2vw, 28px);
     }
     .reveal h1 {
       color: #2c3e50;
-      font-size: 2em;
+      font-size: clamp(24px, 3vw, 48px);
       margin-bottom: 0.5em;
     }
     .reveal h2 {
       color: #2c3e50;
-      font-size: 1.5em;
+      font-size: clamp(20px, 2.5vw, 36px);
       margin-bottom: 0.5em;
     }
     .reveal h3 {
       color: #2c3e50;
-      font-size: 1.2em;
+      font-size: clamp(18px, 2vw, 28px);
       margin-bottom: 0.5em;
     }
     .reveal p, .reveal li {
-      font-size: 0.9em;
+      font-size: clamp(14px, 1.8vw, 24px);
       line-height: 1.4;
       margin-bottom: 0.5em;
     }
@@ -39,8 +39,20 @@ function getCommonPresentationStyles() {
       box-shadow: none;
       background: none;
       max-width: 100%;
-      max-height: 90vh;
+      max-height: 60vh;
       object-fit: contain;
+    }
+    .reveal .slides {
+      width: 100%;
+      height: 100%;
+    }
+    .reveal section {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
     }
     /* Hide Reveal.js controls */
     .reveal .controls {
