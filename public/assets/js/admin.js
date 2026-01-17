@@ -765,7 +765,7 @@ function addSlide(slide = null) {
     </div>
     <div class="form-group">
       <label>Inhalt (WYSIWYG Editor mit Bildupload und Tabellen)</label>
-      <textarea class="slide-content" style="display:none;">${slide?.content || ''}</textarea>
+      <textarea class="slide-content" style="display:none;">${escapeHtml(slide?.content || '')}</textarea>
     </div>
     <div class="form-group">
       <label>Sprechernotiz (für Sprachausgabe)</label>
