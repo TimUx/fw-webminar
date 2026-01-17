@@ -1,5 +1,7 @@
 const API_BASE = '/api';
 const MINIMUM_SLIDE_DURATION = 10000; // 10 seconds in milliseconds
+const ASPECT_RATIO_16_9 = '16-9';
+const ASPECT_RATIO_4_3 = '4-3';
 
 let currentWebinar = null;
 let currentSlideIndex = 0;
@@ -106,12 +108,12 @@ function loadPresentation() {
   
   // Restore aspect ratio preference
   const savedRatio = localStorage.getItem('preferredAspectRatio');
-  if (savedRatio && (savedRatio === '16-9' || savedRatio === '4-3')) {
+  if (savedRatio && (savedRatio === ASPECT_RATIO_16_9 || savedRatio === ASPECT_RATIO_4_3)) {
     const aspectRatioSelect = document.getElementById('aspectRatioSelect');
     const container = document.getElementById('aspectRatioContainer');
     aspectRatioSelect.value = savedRatio;
-    container.classList.remove('ratio-16-9', 'ratio-4-3');
-    container.classList.add('ratio-' + savedRatio);
+    container.classList.remove(`ratio-${ASPECT_RATIO_16_9}`, `ratio-${ASPECT_RATIO_4_3}`);
+    container.classList.add(`ratio-${savedRatio}`);
   }
   
   // Wait for iframe to load
@@ -354,10 +356,10 @@ function changeAspectRatio() {
   const selectedRatio = aspectRatioSelect.value;
   
   // Remove existing ratio classes
-  container.classList.remove('ratio-16-9', 'ratio-4-3');
+  container.classList.remove(`ratio-${ASPECT_RATIO_16_9}`, `ratio-${ASPECT_RATIO_4_3}`);
   
   // Add new ratio class
-  container.classList.add('ratio-' + selectedRatio);
+  container.classList.add(`ratio-${selectedRatio}`);
   
   // Save preference to localStorage
   localStorage.setItem('preferredAspectRatio', selectedRatio);
