@@ -211,11 +211,11 @@ function updateSlideCounter() {
   }
   
   // Update status message
-  updateNextButtonStatus(isLastSlide, canAdvance);
+  updateNextButtonStatus(canAdvance);
 }
 
 // Update status message for the next button
-function updateNextButtonStatus(isLastSlide, canAdvance) {
+function updateNextButtonStatus(canAdvance) {
   const statusElement = document.getElementById('nextSlideStatus');
   if (!statusElement) return;
   
