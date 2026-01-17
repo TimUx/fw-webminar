@@ -10,6 +10,7 @@ let availableVoices = [];
 let selectedVoice = null;
 let speechRate = 0.85;
 let speechPitch = 1.0;
+let speechErrorCount = 0;
 
 // Load settings and webinars on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -180,12 +181,16 @@ function initializeVoices() {
   }
 }
 
-// Select the best available German voice
-function selectBestGermanVoice() {
-  // Filter for German voices
-  const germanVoices = availableVoices.filter(voice => 
+// Get all available German voices
+function getGermanVoices() {
+  return availableVoices.filter(voice => 
     voice.lang.startsWith('de-') || voice.lang === 'de'
   );
+}
+
+// Select the best available German voice
+function selectBestGermanVoice() {
+  const germanVoices = getGermanVoices();
   
   if (germanVoices.length === 0) {
     console.warn('No German voices available, using default');
@@ -241,22 +246,13 @@ function populateVoiceList(germanVoices) {
     
     voiceSelect.appendChild(option);
   });
-  
-  // Store all German voices for selection
-  voiceSelect.dataset.voices = JSON.stringify(germanVoices.map(v => ({
-    name: v.name,
-    lang: v.lang
-  })));
 }
 
 // Change voice based on user selection
 function changeVoice() {
   const voiceSelect = document.getElementById('voiceSelect');
   const selectedIndex = parseInt(voiceSelect.value);
-  
-  const germanVoices = availableVoices.filter(voice => 
-    voice.lang.startsWith('de-') || voice.lang === 'de'
-  );
+  const germanVoices = getGermanVoices();
   
   if (selectedIndex >= 0 && selectedIndex < germanVoices.length) {
     selectedVoice = germanVoices[selectedIndex];
@@ -318,6 +314,8 @@ function speakSlideNote(slideIndex) {
   const text = slide.speakerNote;
   const chunks = chunkText(text);
   
+  // Reset error count for new slide
+  speechErrorCount = 0;
   speakChunks(chunks, 0);
 }
 
@@ -361,6 +359,17 @@ function speakChunks(chunks, index) {
   
   currentUtterance.onerror = (event) => {
     console.error('Speech synthesis error:', event);
+    speechErrorCount++;
+    
+    // Stop trying after 3 consecutive errors to prevent infinite recursion
+    if (speechErrorCount >= 3) {
+      console.error('Too many speech synthesis errors, stopping narration');
+      const indicator = document.getElementById('narrationIndicator');
+      indicator.classList.add('hidden');
+      indicator.classList.remove('speaking');
+      return;
+    }
+    
     // Try next chunk on error
     setTimeout(() => {
       speakChunks(chunks, index + 1);
