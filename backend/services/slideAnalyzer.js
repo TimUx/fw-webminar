@@ -3,15 +3,57 @@ const fsSync = require('fs');
 const path = require('path');
 const JSZip = require('jszip');
 const pdfParse = require('pdf-parse');
-const { exec } = require('child_process');
-const { promisify } = require('util');
-
-const execAsync = promisify(exec);
+const { spawn } = require('child_process');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
 const ASSETS_DIR = process.env.ASSETS_DIR || path.join(__dirname, '../../assets');
 const PDF_TEXT_PREVIEW_LENGTH = 500; // Maximum characters to show in PDF text preview
 const SSE_POLL_INTERVAL = 500; // Milliseconds between progress updates
+
+/**
+ * Execute a command safely using spawn (avoids shell injection)
+ */
+function spawnAsync(command, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { ...options, shell: false });
+    let stdout = '';
+    let stderr = '';
+    
+    if (child.stdout) {
+      child.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+    }
+    
+    if (child.stderr) {
+      child.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+    }
+    
+    child.on('error', reject);
+    
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+      } else {
+        const error = new Error(`Command failed with exit code ${code}`);
+        error.stdout = stdout;
+        error.stderr = stderr;
+        error.code = code;
+        reject(error);
+      }
+    });
+    
+    // Handle timeout
+    if (options.timeout) {
+      setTimeout(() => {
+        child.kill();
+        reject(new Error('Command timeout'));
+      }, options.timeout);
+    }
+  });
+}
 
 /**
  * Progress tracking for slide analysis
@@ -251,10 +293,9 @@ async function extractPDFImages(filename, webinarId) {
   
   try {
     // Use pdftoppm to convert PDF pages to PNG images
-    await execAsync(
-      `pdftoppm "${pdfPath}" "${imageDir}/page" -png`,
-      { timeout: 120000 }
-    );
+    // Using spawn with separate arguments to prevent command injection
+    const outputPrefix = path.join(imageDir, 'page');
+    await spawnAsync('pdftoppm', [pdfPath, outputPrefix, '-png'], { timeout: 120000 });
     
     // Find generated images
     const files = await fs.readdir(imageDir);
@@ -310,7 +351,7 @@ async function analyzePDF(filename, webinarId, onProgress) {
     } else {
       // Fallback to text preview if image extraction failed
       content = `<p>${escapeHtml(pageText.trim().substring(0, PDF_TEXT_PREVIEW_LENGTH))}</p>`;
-      if (!pageImage && pdfImages.length === 0) {
+      if (pdfImages.length === 0) {
         content += `<p><em>Hinweis: PDF-Bilder konnten nicht extrahiert werden. Bitte stellen Sie sicher, dass pdftoppm (poppler-utils) installiert ist.</em></p>`;
       }
     }
