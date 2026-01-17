@@ -129,7 +129,8 @@ async function parseSlideRelationships(zip, slideIndex) {
     
     if (idMatch && targetMatch) {
       const id = idMatch[1];
-      const target = targetMatch[1].replace('../', 'ppt/');
+      // Replace all occurrences of '../' to prevent path traversal
+      const target = targetMatch[1].replace(/\.\.\//g, 'ppt/');
       relationships[id] = target;
     }
   });
