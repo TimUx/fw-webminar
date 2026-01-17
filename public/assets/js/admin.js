@@ -298,10 +298,10 @@ function createQuillEditor(container, initialContent = '') {
   columnsGroup.className = 'ql-formats';
   columnsGroup.innerHTML = `
     <button class="ql-columns-2" type="button" title="2 Spalten einfügen" aria-label="2 Spalten Layout einfügen">
-      <span style="font-size: 10px;" aria-hidden="true">⬜⬜</span>
+      <span style="font-size: 10px;" aria-hidden="true">▢▢</span>
     </button>
     <button class="ql-columns-3" type="button" title="3 Spalten einfügen" aria-label="3 Spalten Layout einfügen">
-      <span style="font-size: 10px;" aria-hidden="true">⬜⬜⬜</span>
+      <span style="font-size: 10px;" aria-hidden="true">▢▢▢</span>
     </button>
   `;
   toolbarContainer.appendChild(columnsGroup);
