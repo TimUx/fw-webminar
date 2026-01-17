@@ -193,6 +193,8 @@ router.post('/smtp/test', async (req, res) => {
 const MIN_TIMESTAMP_DIGITS = 10;
 // Maximum reasonable timestamp digits (20 digits ~ year 2286486)
 const MAX_TIMESTAMP_DIGITS = 20;
+// Minimum timestamp value (year 2000)
+const YEAR_2000_TIMESTAMP = 946684800000;
 
 /**
  * Helper function to extract original filename from stored filename
@@ -209,7 +211,7 @@ function getOriginalFilename(storedFilename) {
     // Validate timestamp is reasonable length and value
     if (timestampStr.length >= MIN_TIMESTAMP_DIGITS && 
         timestampStr.length <= MAX_TIMESTAMP_DIGITS &&
-        timestamp > 946684800000) { // After year 2000
+        timestamp > YEAR_2000_TIMESTAMP) {
       return match[2];
     }
   }
