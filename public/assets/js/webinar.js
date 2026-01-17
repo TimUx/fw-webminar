@@ -82,9 +82,9 @@ async function loadWebinar(id) {
     if (currentWebinar.slides && currentWebinar.slides.length > 0) {
       loadPresentation();
     } else {
-      // No slides, go directly to quiz
+      // No slides, go directly to confirmation
       document.getElementById('presentation-section').classList.add('hidden');
-      startQuiz();
+      document.getElementById('confirmation-section').classList.remove('hidden');
     }
   } catch (error) {
     console.error('Error loading webinar:', error);
@@ -163,7 +163,7 @@ function updateSlideCounter() {
   document.getElementById('progressFill').style.width = `${progress}%`;
   
   document.getElementById('prevSlideBtn').disabled = currentSlideIndex === 0;
-  // Next button is always enabled, even on last slide (to go to confirmation)
+  // Next button is enabled except when before the last slide
   document.getElementById('nextSlideBtn').disabled = false;
 }
 
@@ -400,12 +400,6 @@ function updateConfirmationButton() {
 
 // Proceed to quiz after confirmation
 function proceedToQuiz() {
-  const checkbox = document.getElementById('confirmationCheckbox');
-  if (!checkbox.checked) {
-    alert('Bitte bestätigen Sie, dass Sie das Webinar gelesen und verstanden haben.');
-    return;
-  }
-  
   document.getElementById('confirmation-section').classList.add('hidden');
   startQuiz();
 }
