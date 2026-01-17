@@ -10,7 +10,7 @@ Eine vollständig selbst gehostete, automatisierte Webinar- und E-Learning-Platt
 📊 **Admin-Panel** - Vollständige Verwaltung von Webinaren, PPTX/PDF, Quiz und Ergebnissen  
 🎯 **Quiz-System** - Multiple-Choice-Tests mit automatischer Bewertung  
 📧 **E-Mail-Benachrichtigungen** - Automatischer Versand von Ergebnissen  
-🗣️ **Sprachausgabe** - Browser-basierte automatische Narration (Text-to-Speech)  
+🗣️ **Sprachausgabe** - Verbesserte Text-to-Speech mit Stimmauswahl und Geschwindigkeitsregelung  
 🎨 **Modernes Design** - Basierend auf fw-fragenkatalog Design  
 📱 **Responsive** - Funktioniert auf Desktop, Tablet und Mobile  
 🌐 **Deutsch** - Vollständig auf Deutsch lokalisiert  
@@ -173,6 +173,41 @@ Caddy richtet automatisch Let's Encrypt HTTPS ein.
    - **PPTX**: Wird mit LibreOffice konvertiert
    - Bei fehlenden Tools: Manuelle Slides verwenden
 
+## Sprachausgabe-Einstellungen
+
+Die Webinar-Plattform bietet eine verbesserte Text-to-Speech-Funktion für eine natürlichere und angenehmere Sprachausgabe.
+
+### Funktionen
+
+- **Automatische Stimmauswahl**: Das System wählt automatisch die beste verfügbare deutsche Stimme aus
+- **Manuelle Stimmauswahl**: Benutzer können aus allen verfügbaren deutschen Stimmen ihres Systems wählen
+- **Geschwindigkeitsregelung**: Passen Sie die Sprechgeschwindigkeit zwischen 0.5x (langsam) und 1.2x (schnell) an
+- **Intelligente Pausierung**: Automatische Pausen zwischen Sätzen für bessere Verständlichkeit
+- **Natürlicher Klang**: Optimierte Sprachparameter für menschlichere Aussprache
+
+### Verwendung
+
+1. Starten Sie ein Webinar mit Sprechernotizen
+2. Die Sprachausgabe beginnt automatisch bei jeder Folie
+3. Passen Sie die **Stimme** über das Dropdown-Menü an
+4. Regeln Sie die **Geschwindigkeit** mit dem Schieberegler
+5. Änderungen werden sofort auf die aktuelle Sprachausgabe angewendet
+
+### Tipps für beste Qualität
+
+- **Sprechernotizen**: Schreiben Sie klare, vollständige Sätze
+- **Interpunktion**: Verwenden Sie Punkte, Kommas und Semikolons für natürliche Pausen
+- **Länge**: Halten Sie Notizen übersichtlich (empfohlen: 2-4 Sätze pro Folie)
+- **Geschwindigkeit**: Beginnen Sie mit 0.85x für optimales Verständnis
+- **Stimme**: Testen Sie verschiedene Stimmen, um die angenehmste zu finden
+
+### Technische Details
+
+- Verwendet die Web Speech API des Browsers
+- Keine externen Dienste erforderlich (vollständig selbst gehostet)
+- Funktioniert mit allen Browsern, die SpeechSynthesis unterstützen
+- Automatische Fehlerbehandlung bei Sprachproblemen
+
 ## Dateistruktur
 
 ```
@@ -323,6 +358,16 @@ Pull Requests sind willkommen!
 Design basiert auf: https://github.com/TimUx/fw-fragenkatalog
 
 ## Changelog
+
+### Version 1.1.0 (2026)
+- **Verbesserte Sprachausgabe**
+  - Intelligente Auswahl der besten deutschen Stimme
+  - Benutzer-Kontrollen für Stimmauswahl
+  - Geschwindigkeitsregelung (0.5x - 1.2x)
+  - Natürlichere Sprachausgabe durch Text-Chunking
+  - Automatische Pausen zwischen Sätzen
+  - Optimierte Standard-Sprechgeschwindigkeit (0.85x)
+  - Fehlerbehandlung und Wiederholungslogik
 
 ### Version 1.0.0 (2024)
 - Initiales Release
