@@ -2,6 +2,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install poppler-utils for PDF to image conversion (pdftoppm)
+RUN apk add --no-cache poppler-utils
+
 # Copy package files
 COPY package*.json ./
 

@@ -7,7 +7,7 @@ const { authMiddleware, authMiddlewareSSE } = require('../middleware/auth');
 const { Storage } = require('../utils/storage');
 const { logAudit } = require('../utils/logger');
 const { sendTestEmail } = require('../services/mail');
-const { generateSimpleSlides } = require('../services/pptx');
+const { generateSimpleSlides, convertPDFToSlides } = require('../services/pptx');
 const { analyzePresentation, progressTracker, SSE_POLL_INTERVAL } = require('../services/slideAnalyzer');
 
 const router = express.Router();
@@ -401,15 +401,25 @@ router.post('/webinars', async (req, res) => {
     if (pptxFile && (!slides || slides.length === 0)) {
       try {
         const sessionId = `${webinar.id}-${Date.now()}`;
+        const isPDF = pptxFile.toLowerCase().endsWith('.pdf');
         
         logAudit('FILE_ANALYZE', req.user.username, `Auto-analysiere: ${pptxFile} für Webinar: ${title}`);
         
-        // Analyze presentation synchronously
-        const analyzedSlides = await analyzePresentation(pptxFile, webinar.id, sessionId);
-        webinar.slides = analyzedSlides;
-        
-        // Generate slides presentation
-        await generateSimpleSlides(webinar.id, analyzedSlides);
+        if (isPDF) {
+          // For PDF files, convert pages to images directly
+          await convertPDFToSlides(pptxFile, webinar.id);
+          
+          // Analyze PDF to get slide metadata for the webinar object
+          const analyzedSlides = await analyzePresentation(pptxFile, webinar.id, sessionId);
+          webinar.slides = analyzedSlides;
+        } else {
+          // For PPTX files, analyze and generate slides
+          const analyzedSlides = await analyzePresentation(pptxFile, webinar.id, sessionId);
+          webinar.slides = analyzedSlides;
+          
+          // Generate slides presentation
+          await generateSimpleSlides(webinar.id, analyzedSlides);
+        }
       } catch (analyzeError) {
         console.error('Auto-analysis failed:', analyzeError);
         // Continue creating webinar even if analysis fails
