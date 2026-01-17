@@ -6,11 +6,17 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let speechSynthesis = window.speechSynthesis;
 let currentUtterance = null;
+let availableVoices = [];
+let selectedVoice = null;
+let speechRate = 0.85;
+let speechPitch = 1.0;
+let speechErrorCount = 0;
 
 // Load settings and webinars on page load
 document.addEventListener('DOMContentLoaded', async () => {
   await loadPublicSettings();
   await loadWebinarList();
+  initializeVoices();
 });
 
 // Load public settings (header, logo)
@@ -159,6 +165,145 @@ function updateSlideCounter() {
   document.getElementById('nextSlideBtn').disabled = currentSlideIndex >= totalSlides - 1;
 }
 
+// Initialize and load available voices
+function initializeVoices() {
+  // Load voices
+  availableVoices = speechSynthesis.getVoices();
+  
+  // If voices aren't loaded yet, wait for them
+  if (availableVoices.length === 0) {
+    speechSynthesis.addEventListener('voiceschanged', () => {
+      availableVoices = speechSynthesis.getVoices();
+      selectBestGermanVoice();
+    });
+  } else {
+    selectBestGermanVoice();
+  }
+}
+
+// Get all available German voices
+function getGermanVoices() {
+  return availableVoices.filter(voice => 
+    voice.lang.startsWith('de-') || voice.lang === 'de'
+  );
+}
+
+// Select the best available German voice
+function selectBestGermanVoice() {
+  const germanVoices = getGermanVoices();
+  
+  if (germanVoices.length === 0) {
+    console.warn('No German voices available, using default');
+    return;
+  }
+  
+  // Priority list for high-quality voices
+  const preferredVoiceNames = [
+    'Google Deutsch',
+    'Microsoft Hedda',
+    'Microsoft Katja',
+    'Anna',
+    'Helena',
+    'Vicki',
+    'Petra',
+    'Markus'
+  ];
+  
+  // Try to find a preferred voice
+  for (const preferredName of preferredVoiceNames) {
+    const voice = germanVoices.find(v => 
+      v.name.includes(preferredName) || v.name.toLowerCase().includes(preferredName.toLowerCase())
+    );
+    if (voice) {
+      selectedVoice = voice;
+      console.log('Selected voice:', voice.name);
+      populateVoiceList(germanVoices);
+      return;
+    }
+  }
+  
+  // If no preferred voice found, use the first German voice
+  selectedVoice = germanVoices[0];
+  console.log('Selected voice:', selectedVoice.name);
+  populateVoiceList(germanVoices);
+}
+
+// Populate the voice selection dropdown
+function populateVoiceList(germanVoices) {
+  const voiceSelect = document.getElementById('voiceSelect');
+  if (!voiceSelect) return;
+  
+  voiceSelect.innerHTML = '';
+  
+  germanVoices.forEach((voice, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    
+    if (selectedVoice && voice.name === selectedVoice.name) {
+      option.selected = true;
+    }
+    
+    voiceSelect.appendChild(option);
+  });
+}
+
+// Change voice based on user selection
+function changeVoice() {
+  const voiceSelect = document.getElementById('voiceSelect');
+  const selectedIndex = parseInt(voiceSelect.value);
+  const germanVoices = getGermanVoices();
+  
+  if (selectedIndex >= 0 && selectedIndex < germanVoices.length) {
+    selectedVoice = germanVoices[selectedIndex];
+    console.log('Voice changed to:', selectedVoice.name);
+    
+    // Restart current narration with new voice if speaking
+    if (speechSynthesis.speaking && currentWebinar && currentWebinar.slides) {
+      stopSpeaking();
+      setTimeout(() => {
+        speakSlideNote(currentSlideIndex);
+      }, 100);
+    }
+  }
+}
+
+// Change speech rate
+function changeSpeechRate() {
+  const speedControl = document.getElementById('speedControl');
+  const speedValue = document.getElementById('speedValue');
+  
+  speechRate = parseFloat(speedControl.value);
+  speedValue.textContent = speechRate.toFixed(2) + 'x';
+  
+  // Restart current narration with new rate if speaking
+  if (speechSynthesis.speaking && currentWebinar && currentWebinar.slides) {
+    stopSpeaking();
+    setTimeout(() => {
+      speakSlideNote(currentSlideIndex);
+    }, 100);
+  }
+}
+
+// Improved text chunking for better pronunciation
+function chunkText(text) {
+  // Split by sentences and respect natural pauses
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const chunks = [];
+  
+  for (const sentence of sentences) {
+    // If sentence is very long, split by commas or semicolons
+    if (sentence.length > 200) {
+      const parts = sentence.split(/[,;]+/);
+      chunks.push(...parts.map(p => p.trim()).filter(p => p.length > 0));
+    } else {
+      chunks.push(sentence.trim());
+    }
+  }
+  
+  return chunks.filter(chunk => chunk.length > 0);
+}
+
 // Speech synthesis for narration
 function speakSlideNote(slideIndex) {
   stopSpeaking();
@@ -167,22 +312,68 @@ function speakSlideNote(slideIndex) {
   if (!slide || !slide.speakerNote) return;
   
   const text = slide.speakerNote;
+  const chunks = chunkText(text);
   
-  currentUtterance = new SpeechSynthesisUtterance(text);
-  currentUtterance.lang = 'de-DE';
-  currentUtterance.rate = 0.9;
-  currentUtterance.pitch = 1;
-  
-  currentUtterance.onstart = () => {
-    const indicator = document.getElementById('narrationIndicator');
-    indicator.classList.remove('hidden');
-    indicator.classList.add('speaking');
-  };
-  
-  currentUtterance.onend = () => {
+  // Reset error count for new slide
+  speechErrorCount = 0;
+  speakChunks(chunks, 0);
+}
+
+// Speak text chunks sequentially for better flow
+function speakChunks(chunks, index) {
+  if (index >= chunks.length) {
+    // All chunks spoken
     const indicator = document.getElementById('narrationIndicator');
     indicator.classList.add('hidden');
     indicator.classList.remove('speaking');
+    return;
+  }
+  
+  const chunk = chunks[index];
+  
+  currentUtterance = new SpeechSynthesisUtterance(chunk);
+  currentUtterance.lang = 'de-DE';
+  currentUtterance.rate = speechRate;
+  currentUtterance.pitch = speechPitch;
+  currentUtterance.volume = 1.0;
+  
+  // Use selected voice if available
+  if (selectedVoice) {
+    currentUtterance.voice = selectedVoice;
+  }
+  
+  if (index === 0) {
+    currentUtterance.onstart = () => {
+      const indicator = document.getElementById('narrationIndicator');
+      indicator.classList.remove('hidden');
+      indicator.classList.add('speaking');
+    };
+  }
+  
+  currentUtterance.onend = () => {
+    // Add a small pause between chunks for more natural flow
+    setTimeout(() => {
+      speakChunks(chunks, index + 1);
+    }, 300);
+  };
+  
+  currentUtterance.onerror = (event) => {
+    console.error('Speech synthesis error:', event);
+    speechErrorCount++;
+    
+    // Stop trying after 3 consecutive errors to prevent infinite recursion
+    if (speechErrorCount >= 3) {
+      console.error('Too many speech synthesis errors, stopping narration');
+      const indicator = document.getElementById('narrationIndicator');
+      indicator.classList.add('hidden');
+      indicator.classList.remove('speaking');
+      return;
+    }
+    
+    // Try next chunk on error
+    setTimeout(() => {
+      speakChunks(chunks, index + 1);
+    }, 300);
   };
   
   speechSynthesis.speak(currentUtterance);

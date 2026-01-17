@@ -36,6 +36,21 @@
       <div class="presentation-wrapper">
         <iframe id="presentationFrame" class="presentation-frame" src=""></iframe>
         
+        <!-- Voice Controls -->
+        <div class="voice-controls">
+          <div class="voice-control-group">
+            <label for="voiceSelect">🎤 Stimme:</label>
+            <select id="voiceSelect" onchange="changeVoice()">
+              <option value="">Laden...</option>
+            </select>
+          </div>
+          <div class="voice-control-group">
+            <label for="speedControl">⏱️ Geschwindigkeit:</label>
+            <input type="range" id="speedControl" min="0.5" max="1.2" step="0.05" value="0.85" onchange="changeSpeechRate()">
+            <span id="speedValue">0.85x</span>
+          </div>
+        </div>
+        
         <div class="presentation-controls">
           <button id="prevSlideBtn" onclick="previousSlide()">◀ Zurück</button>
           <div class="progress-bar">
