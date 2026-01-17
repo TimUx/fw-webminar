@@ -268,6 +268,22 @@ function createQuillEditor(container, initialContent = '') {
   `;
   toolbarContainer.appendChild(imageSizingGroup);
   
+  // Create image alignment buttons section
+  const imageAlignGroup = document.createElement('span');
+  imageAlignGroup.className = 'ql-formats';
+  imageAlignGroup.innerHTML = `
+    <button class="ql-image-float-left" type="button" title="Bild links mit Textumfluss">
+      <span style="font-size: 12px;">◀️</span>
+    </button>
+    <button class="ql-image-float-right" type="button" title="Bild rechts mit Textumfluss">
+      <span style="font-size: 12px;">▶️</span>
+    </button>
+    <button class="ql-image-float-none" type="button" title="Textumfluss entfernen">
+      <span style="font-size: 12px;">⬛</span>
+    </button>
+  `;
+  toolbarContainer.appendChild(imageAlignGroup);
+  
   // Create column layout buttons section
   const columnsGroup = document.createElement('span');
   columnsGroup.className = 'ql-formats';
@@ -317,6 +333,36 @@ function createQuillEditor(container, initialContent = '') {
       selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
       selectedImage.classList.add('img-full');
       showNotification('Bildgröße auf "volle Breite" gesetzt');
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  });
+  
+  // Add event listeners for image alignment buttons
+  toolbarContainer.querySelector('.ql-image-float-left').addEventListener('click', () => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-float-left', 'img-float-right');
+      selectedImage.classList.add('img-float-left');
+      showNotification('Bild links ausgerichtet mit Textumfluss');
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  });
+  
+  toolbarContainer.querySelector('.ql-image-float-right').addEventListener('click', () => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-float-left', 'img-float-right');
+      selectedImage.classList.add('img-float-right');
+      showNotification('Bild rechts ausgerichtet mit Textumfluss');
+    } else {
+      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
+    }
+  });
+  
+  toolbarContainer.querySelector('.ql-image-float-none').addEventListener('click', () => {
+    if (selectedImage) {
+      selectedImage.classList.remove('img-float-left', 'img-float-right');
+      showNotification('Textumfluss entfernt');
     } else {
       showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
     }
