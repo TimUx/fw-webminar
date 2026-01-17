@@ -34,19 +34,12 @@
     
     <div class="presentation-container">
       <div class="presentation-wrapper">
-        <div id="aspectRatioContainer" class="aspect-ratio-container ratio-16-9">
+        <div id="aspectRatioContainer" class="aspect-ratio-container">
           <iframe id="presentationFrame" class="presentation-frame" src=""></iframe>
         </div>
         
         <!-- Voice Controls -->
         <div class="voice-controls">
-          <div class="voice-control-group">
-            <label for="aspectRatioSelect">📐 Format:</label>
-            <select id="aspectRatioSelect" onchange="changeAspectRatio()">
-              <option value="16-9" selected>16:9 (Breitbild)</option>
-              <option value="4-3">4:3 (Standard)</option>
-            </select>
-          </div>
           <div class="voice-control-group">
             <label for="voiceSelect">🎤 Stimme:</label>
             <select id="voiceSelect" onchange="changeVoice()">
