@@ -55,8 +55,8 @@ h1 {
 
 /* Content sections */
 main, section {
-  max-width: 95%;
-  margin: 10px auto;
+  max-width: 100%;
+  margin: 10px 0;
   background: white;
   padding: 20px;
   border-radius: 8px;
@@ -108,8 +108,8 @@ button:disabled {
 
 /* Welcome Section */
 .welcome-section {
-  max-width: 1000px;
-  margin: 30px auto;
+  max-width: 100%;
+  margin: 30px 0;
   background: white;
   padding: 40px;
   border-radius: 12px;
