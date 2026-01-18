@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { spawnAsync } = require('../utils/process');
+const { generatePresentationHtml } = require('../renderer/slideRenderer');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../../uploads');
 const SLIDES_DIR = process.env.SLIDES_DIR || path.join(__dirname, '../../slides');
@@ -466,70 +467,17 @@ async function createRevealPresentation(htmlFilename, webinarId, speakerNotes = 
 /**
  * Generate simple slides from PPTX metadata
  */
+/**
+ * Generate simple Reveal.js presentation from slide data
+ * Now uses the slideRenderer module to convert TipTap JSON to HTML
+ */
 async function generateSimpleSlides(webinarId, slideData) {
   const outputDir = path.join(SLIDES_DIR, webinarId);
   await fs.mkdir(outputDir, { recursive: true });
   
-  const slides = slideData.map((slide, index) => `
-    <section>
-      <div class="slide-content">
-        <h2>${slide.title || `Folie ${index + 1}`}</h2>
-        ${slide.content ? `<div>${slide.content}</div>` : ''}
-      </div>
-      ${slide.speakerNote ? `<aside class="notes">${slide.speakerNote}</aside>` : ''}
-    </section>
-  `).join('\n');
-  
-  const revealHtml = `
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webinar Präsentation</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
-  <style>
-    ${getCommonPresentationStyles()}
-    .slide-content {
-      padding: 30px;
-      text-align: left;
-      max-width: 90%;
-      margin: 0 auto;
-    }
-  </style>
-</head>
-<body>
-  <div class="reveal">
-    <div class="slides">
-      ${slides}
-    </div>
-  </div>
-  
-  <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
-  <script>
-    Reveal.initialize({
-      controls: false,
-      progress: false,
-      center: true,
-      hash: false,
-      transition: 'slide',
-      backgroundTransition: 'none'
-    });
-    
-    // Speaker notes from data
-    const speakerNotes = ${JSON.stringify(slideData.map(s => s.speakerNote || ''))};
-    
-    window.revealControl = {
-      next: () => Reveal.next(),
-      prev: () => Reveal.prev(),
-      getCurrentSlide: () => Reveal.getState().indexh,
-      getTotalSlides: () => Reveal.getTotalSlides(),
-      getSpeakerNote: (index) => speakerNotes[index] || ''
-    };
-  </script>
-</body>
-</html>
-  `;
+  // Use the new slideRenderer to generate presentation HTML
+  // This handles both HTML (legacy) and TipTap JSON formats
+  const revealHtml = generatePresentationHtml(slideData, 'Webinar Präsentation');
   
   await fs.writeFile(path.join(outputDir, 'presentation.html'), revealHtml, 'utf-8');
   
