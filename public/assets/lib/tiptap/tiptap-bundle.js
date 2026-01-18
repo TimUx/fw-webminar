@@ -2,6 +2,7 @@
  * TipTap Editor Bundle
  * Self-contained TipTap editor setup for fw-webminar
  * Uses CDN imports for all TipTap dependencies
+ * Includes custom nodes for layout blocks (TwoColumnBlock, ThreeColumnBlock, HeroBlock)
  */
 
 // Import statements will be handled by browser ES modules
@@ -10,13 +11,13 @@
 /**
  * Initialize TipTap editor with all necessary extensions
  * @param {HTMLElement} element - The DOM element to mount the editor
- * @param {string} initialContent - Initial HTML content
- * @param {Function} onUpdate - Callback when content changes
+ * @param {string} initialContent - Initial HTML content or JSON
+ * @param {Function} onUpdate - Callback when content changes (receives JSON, not HTML)
  * @returns {Object} Editor instance with helper methods
  */
 window.createTipTapEditor = async function(element, initialContent = '', onUpdate = null) {
   // Import TipTap modules from CDN
-  const { Editor } = await import('https://esm.sh/@tiptap/core@2.1.13');
+  const { Editor, Node } = await import('https://esm.sh/@tiptap/core@2.1.13');
   const StarterKit = (await import('https://esm.sh/@tiptap/starter-kit@2.1.13')).default;
   const Image = (await import('https://esm.sh/@tiptap/extension-image@2.1.13')).default;
   const Link = (await import('https://esm.sh/@tiptap/extension-link@2.1.13')).default;
@@ -28,6 +29,156 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
   const Underline = (await import('https://esm.sh/@tiptap/extension-underline@2.1.13')).default;
   const Color = (await import('https://esm.sh/@tiptap/extension-color@2.1.13')).default;
   const TextStyle = (await import('https://esm.sh/@tiptap/extension-text-style@2.1.13')).default;
+  
+  // Define custom nodes for layout blocks
+  const Column = Node.create({
+    name: 'column',
+    content: 'block+',
+    group: 'block',
+    
+    parseHTML() {
+      return [{ tag: 'div.column' }];
+    },
+    
+    renderHTML({ HTMLAttributes }) {
+      return ['div', { class: 'column' }, 0];
+    },
+  });
+  
+  const TwoColumnBlock = Node.create({
+    name: 'twoColumnBlock',
+    group: 'block',
+    content: 'column column',
+    draggable: true,
+    
+    parseHTML() {
+      return [{ tag: 'div.two-column-block' }];
+    },
+    
+    renderHTML({ HTMLAttributes }) {
+      return ['div', { class: 'two-column-block', 'data-type': 'two-column-block' }, 0];
+    },
+    
+    addCommands() {
+      return {
+        insertTwoColumnBlock: () => ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            content: [
+              {
+                type: 'column',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Linke Spalte' }] }]
+              },
+              {
+                type: 'column',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Rechte Spalte' }] }]
+              }
+            ]
+          });
+        },
+      };
+    },
+  });
+  
+  const ThreeColumnBlock = Node.create({
+    name: 'threeColumnBlock',
+    group: 'block',
+    content: 'column column column',
+    draggable: true,
+    
+    parseHTML() {
+      return [{ tag: 'div.three-column-block' }];
+    },
+    
+    renderHTML({ HTMLAttributes }) {
+      return ['div', { class: 'three-column-block', 'data-type': 'three-column-block' }, 0];
+    },
+    
+    addCommands() {
+      return {
+        insertThreeColumnBlock: () => ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            content: [
+              {
+                type: 'column',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spalte 1' }] }]
+              },
+              {
+                type: 'column',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spalte 2' }] }]
+              },
+              {
+                type: 'column',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spalte 3' }] }]
+              }
+            ]
+          });
+        },
+      };
+    },
+  });
+  
+  const HeroTitle = Node.create({
+    name: 'heroTitle',
+    content: 'text*',
+    
+    parseHTML() {
+      return [{ tag: 'h1.hero-title' }];
+    },
+    
+    renderHTML({ HTMLAttributes }) {
+      return ['h1', { class: 'hero-title' }, 0];
+    },
+  });
+  
+  const HeroSubtitle = Node.create({
+    name: 'heroSubtitle',
+    content: 'text*',
+    
+    parseHTML() {
+      return [{ tag: 'p.hero-subtitle' }];
+    },
+    
+    renderHTML({ HTMLAttributes }) {
+      return ['p', { class: 'hero-subtitle' }, 0];
+    },
+  });
+  
+  const HeroBlock = Node.create({
+    name: 'heroBlock',
+    group: 'block',
+    content: 'heroTitle heroSubtitle',
+    draggable: true,
+    
+    parseHTML() {
+      return [{ tag: 'div.hero-block' }];
+    },
+    
+    renderHTML({ HTMLAttributes }) {
+      return ['div', { class: 'hero-block', 'data-type': 'hero-block' }, 0];
+    },
+    
+    addCommands() {
+      return {
+        insertHeroBlock: () => ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            content: [
+              {
+                type: 'heroTitle',
+                content: [{ type: 'text', text: 'Großer Titel' }]
+              },
+              {
+                type: 'heroSubtitle',
+                content: [{ type: 'text', text: 'Untertitel oder Beschreibung' }]
+              }
+            ]
+          });
+        },
+      };
+    },
+  });
 
   // Create editor container
   const editorContainer = document.createElement('div');
@@ -59,7 +210,7 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
     </div>
     <div class="tiptap-toolbar-group">
       <button type="button" data-action="link" title="Link" class="tiptap-btn">🔗</button>
-      <button type="button" data-action="image" title="Bild" class="tiptap-btn">🖼️</button>
+      <button type="button" data-action="image" title="Bild Upload" class="tiptap-btn">🖼️</button>
       <button type="button" data-action="table" title="Tabelle" class="tiptap-btn">📊</button>
     </div>
     <div class="tiptap-toolbar-group tiptap-image-controls" style="display: none;">
@@ -76,8 +227,10 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       <button type="button" data-action="img-float-none" title="Normal" class="tiptap-btn">⬛</button>
     </div>
     <div class="tiptap-toolbar-group">
-      <button type="button" data-action="columns-2" title="2 Spalten" class="tiptap-btn">⬜⬜</button>
-      <button type="button" data-action="columns-3" title="3 Spalten" class="tiptap-btn">⬜⬜⬜</button>
+      <span class="tiptap-label">Layouts:</span>
+      <button type="button" data-action="two-column-block" title="2-Spalten Layout" class="tiptap-btn">⬜⬜</button>
+      <button type="button" data-action="three-column-block" title="3-Spalten Layout" class="tiptap-btn">⬜⬜⬜</button>
+      <button type="button" data-action="hero-block" title="Hero Slide (Großer Titel)" class="tiptap-btn">🎯</button>
     </div>
   `;
   
@@ -128,12 +281,20 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       }),
       Underline,
       TextStyle,
-      Color
+      Color,
+      // Custom layout nodes
+      Column,
+      TwoColumnBlock,
+      ThreeColumnBlock,
+      HeroTitle,
+      HeroSubtitle,
+      HeroBlock
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
       if (onUpdate) {
-        onUpdate(editor.getHTML());
+        // Pass JSON instead of HTML for proper storage
+        onUpdate(editor.getJSON());
       }
       // Update hidden textarea if it exists
       if (element.tagName === 'TEXTAREA') {
@@ -253,11 +414,23 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       case 'img-float-none':
         setImageFloat(selectedImage, null);
         break;
-      case 'columns-2':
-        insertColumns(editor, 2);
+      case 'two-column-block':
+        editor.chain().focus().insertTwoColumnBlock().run();
+        if (window.showNotification) {
+          window.showNotification('2-Spalten Layout eingefügt');
+        }
         break;
-      case 'columns-3':
-        insertColumns(editor, 3);
+      case 'three-column-block':
+        editor.chain().focus().insertThreeColumnBlock().run();
+        if (window.showNotification) {
+          window.showNotification('3-Spalten Layout eingefügt');
+        }
+        break;
+      case 'hero-block':
+        editor.chain().focus().insertHeroBlock().run();
+        if (window.showNotification) {
+          window.showNotification('Hero Slide eingefügt');
+        }
         break;
     }
   });
@@ -388,20 +561,6 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       if (window.showNotification) {
         window.showNotification('Textumfluss entfernt');
       }
-    }
-  }
-  
-  function insertColumns(editor, numCols) {
-    const columns = Array.from({ length: numCols }, (_, i) => 
-      `<div class="column"><p>Spalte ${i + 1}</p></div>`
-    ).join('');
-    
-    const html = `<div class="columns-${numCols}">${columns}</div>`;
-    
-    editor.chain().focus().insertContent(html).run();
-    
-    if (window.showNotification) {
-      window.showNotification(`${numCols}-Spalten Layout eingefügt`);
     }
   }
   
