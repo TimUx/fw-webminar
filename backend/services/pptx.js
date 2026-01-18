@@ -7,57 +7,164 @@ const SLIDES_DIR = process.env.SLIDES_DIR || path.join(__dirname, '../../slides'
 
 /**
  * Get common presentation CSS styles
+ * Matches the main webinar site design for consistency
  */
 function getCommonPresentationStyles() {
   return `
+    /* Base styles matching main site */
+    body {
+      background: white;
+      margin: 0;
+      padding: 0;
+    }
+    
     .reveal {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-size: clamp(12px, 1.2vw, 16px);
+      font-size: clamp(14px, 1.5vw, 18px);
+      background: white;
+      color: #333;
     }
+    
+    /* Headings matching main site style */
     .reveal h1 {
       color: #2c3e50;
-      font-size: clamp(18px, 1.8vw, 24px);
-      margin-bottom: 0.4em;
+      font-size: clamp(24px, 2.5vw, 32px);
+      font-weight: 600;
+      margin-bottom: 0.6em;
+      line-height: 1.3;
     }
+    
     .reveal h2 {
       color: #2c3e50;
-      font-size: clamp(16px, 1.5vw, 20px);
-      margin-bottom: 0.4em;
+      font-size: clamp(20px, 2vw, 26px);
+      font-weight: 600;
+      margin-bottom: 0.5em;
+      line-height: 1.3;
     }
+    
     .reveal h3 {
       color: #2c3e50;
-      font-size: clamp(14px, 1.3vw, 18px);
-      margin-bottom: 0.4em;
+      font-size: clamp(16px, 1.7vw, 22px);
+      font-weight: 600;
+      margin-bottom: 0.5em;
+      line-height: 1.3;
     }
+    
+    /* Text content */
     .reveal p, .reveal li {
-      font-size: clamp(12px, 1.2vw, 16px);
-      line-height: 1.4;
-      margin-bottom: 0.4em;
+      font-size: clamp(14px, 1.5vw, 18px);
+      line-height: 1.6;
+      margin-bottom: 0.8em;
+      color: #333;
     }
+    
+    .reveal ul, .reveal ol {
+      margin-top: 0.5em;
+      margin-bottom: 0.8em;
+    }
+    
+    .reveal li {
+      margin-bottom: 0.5em;
+    }
+    
+    /* Links matching main site accent color */
+    .reveal a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    
+    .reveal a:hover {
+      color: #2980b9;
+      text-decoration: underline;
+    }
+    
+    /* Images responsive and clean */
     .reveal section img {
       border: none;
       box-shadow: none;
       background: none;
       max-width: 100%;
-      max-height: 50vh;
+      max-height: 60vh;
       object-fit: contain;
+      margin: 1em auto;
+      display: block;
     }
+    
+    /* Slide container */
     .reveal .slides {
       width: 100%;
       height: 100%;
     }
+    
+    /* Individual slides with proper spacing and background */
     .reveal section {
       height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 15px;
+      padding: 30px;
       box-sizing: border-box;
       overflow-y: auto;
+      background: white;
+      text-align: left;
     }
-    /* Hide Reveal.js controls */
+    
+    /* Hide Reveal.js default controls and progress */
     .reveal .controls {
       display: none !important;
+    }
+    
+    .reveal .progress {
+      display: none !important;
+    }
+    
+    /* Tables if present */
+    .reveal table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+    }
+    
+    .reveal th {
+      background: #f8f9fa;
+      color: #2c3e50;
+      font-weight: 600;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    
+    .reveal td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      color: #333;
+    }
+    
+    /* Code blocks if present */
+    .reveal pre {
+      background: #f8f9fa;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 1em 0;
+    }
+    
+    .reveal code {
+      font-family: 'Courier New', monospace;
+      color: #333;
+    }
+    
+    /* Strong/bold text */
+    .reveal strong, .reveal b {
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    
+    /* Blockquotes */
+    .reveal blockquote {
+      border-left: 4px solid #3498db;
+      padding-left: 20px;
+      margin: 1em 0;
+      font-style: italic;
+      color: #555;
     }
   `;
 }
@@ -172,7 +279,6 @@ async function createImageSlides(webinarId, imageFiles) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Webinar Präsentation</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
   <style>
     ${getCommonPresentationStyles()}
   </style>
@@ -188,10 +294,11 @@ async function createImageSlides(webinarId, imageFiles) {
   <script>
     Reveal.initialize({
       controls: false,
-      progress: true,
+      progress: false,
       center: true,
       hash: false,
-      transition: 'slide'
+      transition: 'slide',
+      backgroundTransition: 'none'
     });
     
     // No speaker notes for PDF slides
@@ -264,7 +371,6 @@ async function createRevealPresentation(htmlFilename, webinarId, speakerNotes = 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Webinar Präsentation</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
   <style>
     ${getCommonPresentationStyles()}
     .slide-content {
@@ -291,10 +397,11 @@ async function createRevealPresentation(htmlFilename, webinarId, speakerNotes = 
     // Initialize Reveal.js
     Reveal.initialize({
       controls: false,
-      progress: true,
+      progress: false,
       center: true,
       hash: false,
       transition: 'slide',
+      backgroundTransition: 'none',
       autoSlide: 0, // Will be controlled by parent
       loop: false
     });
@@ -347,7 +454,6 @@ async function generateSimpleSlides(webinarId, slideData) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Webinar Präsentation</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
   <style>
     ${getCommonPresentationStyles()}
     .slide-content {
@@ -369,10 +475,11 @@ async function generateSimpleSlides(webinarId, slideData) {
   <script>
     Reveal.initialize({
       controls: false,
-      progress: true,
+      progress: false,
       center: true,
       hash: false,
-      transition: 'slide'
+      transition: 'slide',
+      backgroundTransition: 'none'
     });
     
     // Speaker notes from data
