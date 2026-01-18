@@ -298,7 +298,8 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       }
       // Update hidden textarea if it exists
       if (element.tagName === 'TEXTAREA') {
-        element.value = editor.getHTML();
+        // Store JSON as string in textarea
+        element.value = JSON.stringify(editor.getJSON());
       }
     },
     editorProps: {

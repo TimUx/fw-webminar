@@ -210,9 +210,13 @@ async function createTipTapEditor(container, initialContent = '') {
   }
   
   // Callback to sync content back to textarea
-  const onUpdateCallback = (htmlContent) => {
+  // Now syncs JSON instead of HTML for proper TipTap JSON storage
+  const onUpdateCallback = (jsonContent) => {
     if (textarea) {
-      textarea.value = htmlContent;
+      // Store JSON as string in the textarea
+      textarea.value = JSON.stringify(jsonContent);
+      // Also store as data attribute for easy access
+      textarea.dataset.tiptapJson = JSON.stringify(jsonContent);
     }
   };
   
@@ -563,6 +567,20 @@ async function addSlide(slide = null) {
   const container = document.getElementById('slidesContainer');
   const index = container.children.length;
   
+  // Prepare content for editor initialization
+  // If content is an object (TipTap JSON), use it directly
+  // If content is a string (HTML), it will be parsed by TipTap
+  let initialContent = '';
+  if (slide?.content) {
+    if (typeof slide.content === 'object') {
+      // TipTap JSON format - convert to JSON string for data attribute
+      initialContent = JSON.stringify(slide.content);
+    } else {
+      // Legacy HTML format - will be handled by TipTap
+      initialContent = slide.content;
+    }
+  }
+  
   const div = document.createElement('div');
   div.className = 'slide-item';
   div.innerHTML = `
@@ -580,7 +598,7 @@ async function addSlide(slide = null) {
     </div>
     <div class="form-group">
       <label>Inhalt (WYSIWYG Editor mit Bildupload und Tabellen)</label>
-      <textarea class="slide-content" style="display:none;">${escapeHtml(slide?.content || '')}</textarea>
+      <textarea class="slide-content" style="display:none;" data-tiptap-json="${escapeHtml(initialContent)}">${escapeHtml(initialContent)}</textarea>
     </div>
     <div class="form-group">
       <label>Sprechernotiz (für Sprachausgabe)</label>
@@ -592,7 +610,20 @@ async function addSlide(slide = null) {
   
   // Initialize TipTap editor for this slide's content
   const contentContainer = div.querySelector('.form-group:nth-child(3)');
-  const quillEditor = await createQuillEditor(contentContainer, slide?.content || '');
+  
+  // Pass the appropriate initial content format to the editor
+  let editorInitialContent = '';
+  if (slide?.content) {
+    if (typeof slide.content === 'object') {
+      // TipTap JSON - editor can handle this directly
+      editorInitialContent = slide.content;
+    } else {
+      // HTML string - editor will parse it
+      editorInitialContent = slide.content;
+    }
+  }
+  
+  const quillEditor = await createQuillEditor(contentContainer, editorInitialContent);
   quillEditors.push(quillEditor);
   
   // Update all slide numbers after adding
@@ -709,12 +740,22 @@ document.getElementById('webinarForm').addEventListener('submit', async (e) => {
     const title = document.getElementById('webinarTitle').value;
     const pptxFile = document.getElementById('webinarPptx').value;
     
-    // Collect slides - get content from Quill editors
+    // Collect slides - get content as TipTap JSON from editors
     const slideItems = Array.from(document.querySelectorAll('.slide-item'));
     const slides = slideItems.map((item, index) => {
-      // Get content from the hidden textarea (which is synced with Quill)
+      // Get content from the hidden textarea (which is synced with TipTap as JSON)
       const contentTextarea = item.querySelector('.slide-content');
-      const content = contentTextarea ? contentTextarea.value : '';
+      let content = '';
+      
+      if (contentTextarea && contentTextarea.value) {
+        try {
+          // Try to parse as JSON (new TipTap format)
+          content = JSON.parse(contentTextarea.value);
+        } catch (e) {
+          // If parsing fails, it's probably legacy HTML, keep as string
+          content = contentTextarea.value;
+        }
+      }
       
       return {
         title: item.querySelector('.slide-title').value,
