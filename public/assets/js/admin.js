@@ -110,8 +110,14 @@ async function uploadImageToServer(file) {
 }
 
 // Helper to insert a simple table in Quill
+// Helper messages for unsupported features
+const MESSAGES = {
+  TABLE_NOT_SUPPORTED: 'Bitte verwenden Sie den HTML-Quellcode-Button (</>), um Tabellen hinzuzufügen. Quill unterstützt Tabellen nicht nativ im WYSIWYG-Modus.',
+  COLUMNS_NOT_SUPPORTED: (numColumns) => `Bitte verwenden Sie den HTML-Quellcode-Button (</>), um Spalten-Layouts hinzuzufügen. Beispiel: <div class="columns-${numColumns}">${Array.from({length: numColumns}, (_, i) => `<div class="column">Spalte ${i + 1}</div>`).join('')}</div>`
+};
+
 function insertTable(quill) {
-  showNotification('Bitte verwenden Sie den HTML-Quellcode-Button (</>), um Tabellen hinzuzufügen. Quill unterstützt Tabellen nicht nativ im WYSIWYG-Modus.', true);
+  showNotification(MESSAGES.TABLE_NOT_SUPPORTED, true);
 }
 
 // Helper to create Quill editor with image upload and tables
@@ -355,11 +361,11 @@ function createQuillEditor(container, initialContent = '') {
   
   // Add event listeners for column layout buttons
   toolbarContainer.querySelector('.ql-columns-2').addEventListener('click', () => {
-    showNotification('Bitte verwenden Sie den HTML-Quellcode-Button (</>), um Spalten-Layouts hinzuzufügen. Beispiel: <div class="columns-2"><div class="column">Spalte 1</div><div class="column">Spalte 2</div></div>', true);
+    showNotification(MESSAGES.COLUMNS_NOT_SUPPORTED(2), true);
   });
   
   toolbarContainer.querySelector('.ql-columns-3').addEventListener('click', () => {
-    showNotification('Bitte verwenden Sie den HTML-Quellcode-Button (</>), um Spalten-Layouts hinzuzufügen. Beispiel: <div class="columns-3"><div class="column">Spalte 1</div><div class="column">Spalte 2</div><div class="column">Spalte 3</div></div>', true);
+    showNotification(MESSAGES.COLUMNS_NOT_SUPPORTED(3), true);
   });
   
   // Add event listener for source code toggle button
