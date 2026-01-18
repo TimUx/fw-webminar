@@ -261,12 +261,15 @@ h3 {
 .quill-editor-container .ql-editor table {
   border-collapse: collapse;
   width: 100%;
+  margin: 15px 0;
+  border: 1px solid #ddd;
 }
 
 .quill-editor-container .ql-editor table td,
 .quill-editor-container .ql-editor table th {
   border: 1px solid #ddd;
   padding: 8px;
+  text-align: left;
 }
 
 .quill-editor-container .ql-editor table th {
@@ -891,7 +894,7 @@ hr {
 }
 
 /* Selected Image Highlight */
-.ql-editor img.selected-image {
+.quill-editor-container .ql-editor img.selected-image {
   outline: 2px solid #3498db;
   outline-offset: 2px;
 }

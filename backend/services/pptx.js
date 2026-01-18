@@ -166,9 +166,7 @@ function getCommonPresentationStyles() {
     }
     .reveal .column {
       padding: 10px;
-      border: 1px solid #ddd;
       min-height: 50px;
-      background: #f9f9f9;
     }
     
     /* Table Styling */
@@ -176,6 +174,7 @@ function getCommonPresentationStyles() {
       border-collapse: collapse;
       width: 100%;
       margin: 15px 0;
+      border: 1px solid #ddd;
     }
     .reveal table td,
     .reveal table th {

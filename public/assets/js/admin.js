@@ -119,13 +119,13 @@ function insertTable(quill) {
     const numCols = parseInt(cols);
     
     if (numRows > 0 && numCols > 0) {
-      let tableHTML = '<table style="border-collapse: collapse; width: 100%; border: 1px solid #ddd;">\n';
+      let tableHTML = '<table>\n';
       
       for (let i = 0; i < numRows; i++) {
         tableHTML += '  <tr>\n';
         for (let j = 0; j < numCols; j++) {
           const tag = i === 0 ? 'th' : 'td';
-          tableHTML += `    <${tag} style="border: 1px solid #ddd; padding: 8px;">${tag === 'th' ? 'Kopfzeile' : 'Zelle'}</${tag}>\n`;
+          tableHTML += `    <${tag}>${tag === 'th' ? 'Kopfzeile' : 'Zelle'}</${tag}>\n`;
         }
         tableHTML += '  </tr>\n';
       }
