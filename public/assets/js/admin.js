@@ -110,14 +110,69 @@ async function uploadImageToServer(file) {
 }
 
 // Helper to insert a simple table in Quill
-// Helper messages for unsupported features
-const MESSAGES = {
-  TABLE_NOT_SUPPORTED: 'Bitte verwenden Sie den HTML-Quellcode-Button (</>), um Tabellen hinzuzufügen. Quill unterstützt Tabellen nicht nativ im WYSIWYG-Modus.',
-  COLUMNS_NOT_SUPPORTED: (numColumns) => `Bitte verwenden Sie den HTML-Quellcode-Button (</>), um Spalten-Layouts hinzuzufügen. Beispiel: <div class="columns-${numColumns}">${Array.from({length: numColumns}, (_, i) => `<div class="column">Spalte ${i + 1}</div>`).join('')}</div>`
-};
+function insertTable(quill, editorContainer) {
+  const tableHTML = `<table>
+  <thead>
+    <tr>
+      <th>Header 1</th>
+      <th>Header 2</th>
+      <th>Header 3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Zeile 1, Spalte 1</td>
+      <td>Zeile 1, Spalte 2</td>
+      <td>Zeile 1, Spalte 3</td>
+    </tr>
+    <tr>
+      <td>Zeile 2, Spalte 1</td>
+      <td>Zeile 2, Spalte 2</td>
+      <td>Zeile 2, Spalte 3</td>
+    </tr>
+  </tbody>
+</table>
+`;
+  
+  // Check if in source code mode
+  const sourceTextarea = editorContainer.querySelector('.source-code-textarea');
+  if (sourceTextarea) {
+    // Insert into source code textarea at cursor position
+    const start = sourceTextarea.selectionStart;
+    const end = sourceTextarea.selectionEnd;
+    const text = sourceTextarea.value;
+    sourceTextarea.value = text.substring(0, start) + tableHTML + text.substring(end);
+    sourceTextarea.selectionStart = sourceTextarea.selectionEnd = start + tableHTML.length;
+    sourceTextarea.focus();
+  } else {
+    // Insert at end of editor content
+    const currentHTML = quill.root.innerHTML;
+    quill.root.innerHTML = currentHTML + tableHTML;
+  }
+  showNotification('Tabelle eingefügt');
+}
 
-function insertTable(quill) {
-  showNotification(MESSAGES.TABLE_NOT_SUPPORTED, true);
+// Helper to insert column layout in Quill
+function insertColumns(quill, numColumns, editorContainer) {
+  const columns = Array.from({length: numColumns}, (_, i) => `<div class="column">Spalte ${i + 1}</div>`).join('');
+  const columnsHTML = `<div class="columns-${numColumns}">${columns}</div>`;
+  
+  // Check if in source code mode
+  const sourceTextarea = editorContainer.querySelector('.source-code-textarea');
+  if (sourceTextarea) {
+    // Insert into source code textarea at cursor position
+    const start = sourceTextarea.selectionStart;
+    const end = sourceTextarea.selectionEnd;
+    const text = sourceTextarea.value;
+    sourceTextarea.value = text.substring(0, start) + columnsHTML + text.substring(end);
+    sourceTextarea.selectionStart = sourceTextarea.selectionEnd = start + columnsHTML.length;
+    sourceTextarea.focus();
+  } else {
+    // Insert at end of editor content
+    const currentHTML = quill.root.innerHTML;
+    quill.root.innerHTML = currentHTML + columnsHTML;
+  }
+  showNotification(`${numColumns}-Spalten Layout eingefügt`);
 }
 
 // Helper to create Quill editor with image upload and tables
@@ -210,7 +265,7 @@ function createQuillEditor(container, initialContent = '') {
             };
           },
           table: function() {
-            insertTable(this.quill);
+            insertTable(this.quill, editorDiv);
           }
         }
       }
@@ -361,11 +416,11 @@ function createQuillEditor(container, initialContent = '') {
   
   // Add event listeners for column layout buttons
   toolbarContainer.querySelector('.ql-columns-2').addEventListener('click', () => {
-    showNotification(MESSAGES.COLUMNS_NOT_SUPPORTED(2), true);
+    insertColumns(quill, 2, editorDiv);
   });
   
   toolbarContainer.querySelector('.ql-columns-3').addEventListener('click', () => {
-    showNotification(MESSAGES.COLUMNS_NOT_SUPPORTED(3), true);
+    insertColumns(quill, 3, editorDiv);
   });
   
   // Add event listener for source code toggle button
