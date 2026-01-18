@@ -138,6 +138,66 @@ function insertTable(quill) {
   }
 }
 
+// Insert table directly into DOM (bypassing Quill's content model)
+function insertTableDirectly(quill) {
+  const rows = prompt('Anzahl der Zeilen:', '3');
+  const cols = prompt('Anzahl der Spalten:', '3');
+  
+  if (rows && cols) {
+    const numRows = parseInt(rows);
+    const numCols = parseInt(cols);
+    
+    if (numRows > 0 && numCols > 0) {
+      // Create table element
+      const table = document.createElement('table');
+      
+      for (let i = 0; i < numRows; i++) {
+        const tr = document.createElement('tr');
+        for (let j = 0; j < numCols; j++) {
+          const cell = document.createElement(i === 0 ? 'th' : 'td');
+          cell.textContent = i === 0 ? 'Kopfzeile' : 'Zelle';
+          cell.contentEditable = 'true';
+          tr.appendChild(cell);
+        }
+        table.appendChild(tr);
+      }
+      
+      // Insert table into editor DOM
+      const range = quill.getSelection(true) || { index: 0 };
+      const editorElement = quill.root;
+      
+      // Find the node at cursor position
+      const [leaf] = quill.getLeaf(range.index);
+      if (leaf && leaf.domNode) {
+        // Insert after current block
+        const block = leaf.domNode.closest('p, div, h1, h2, h3, h4, h5, h6') || leaf.domNode;
+        if (block.parentNode) {
+          block.parentNode.insertBefore(table, block.nextSibling);
+          
+          // Add a paragraph after the table for continued editing
+          const p = document.createElement('p');
+          p.innerHTML = '<br>';
+          table.parentNode.insertBefore(p, table.nextSibling);
+          
+          // Move cursor to the new paragraph
+          setTimeout(() => {
+            const newIndex = range.index + 1;
+            quill.setSelection(newIndex, 0);
+          }, 0);
+        }
+      } else {
+        // Fallback: append to editor
+        editorElement.appendChild(table);
+        const p = document.createElement('p');
+        p.innerHTML = '<br>';
+        editorElement.appendChild(p);
+      }
+      
+      showNotification('Tabelle eingefügt');
+    }
+  }
+}
+
 // Helper to create Quill editor with image upload and tables
 function createQuillEditor(container, initialContent = '') {
   const editorDiv = document.createElement('div');
@@ -228,7 +288,7 @@ function createQuillEditor(container, initialContent = '') {
             };
           },
           table: function() {
-            insertTable(this.quill);
+            insertTableDirectly(this.quill);
           }
         }
       }
