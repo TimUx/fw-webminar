@@ -117,57 +117,89 @@ function getCommonPresentationStyles() {
       display: none !important;
     }
     
-    .reveal .progress {
-      display: none !important;
+    /* Image Sizing Classes */
+    .reveal img.img-small {
+      max-width: 25%;
+      height: auto;
+      display: inline-block;
+    }
+    .reveal img.img-medium {
+      max-width: 50%;
+      height: auto;
+      display: inline-block;
+    }
+    .reveal img.img-large {
+      max-width: 75%;
+      height: auto;
+      display: inline-block;
+    }
+    .reveal img.img-full {
+      max-width: 100%;
+      height: auto;
+      display: block;
     }
     
-    /* Tables if present */
+    /* Image Float/Text Wrap Classes */
+    .reveal img.img-float-left {
+      float: left;
+      margin: 0 15px 15px 0;
+    }
+    .reveal img.img-float-right {
+      float: right;
+      margin: 0 0 15px 15px;
+    }
+    
+    /* Column Layout Support */
+    .reveal .columns-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+      width: 100%;
+    }
+    .reveal .columns-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+      width: 100%;
+    }
+    .reveal .column {
+      padding: 10px;
+      border: 1px solid #ddd;
+      min-height: 50px;
+      background: #f9f9f9;
+    }
+    
+    /* Table Styling */
     .reveal table {
       border-collapse: collapse;
       width: 100%;
-      margin: 1em 0;
+      margin: 15px 0;
     }
-    
-    .reveal th {
-      background: #f8f9fa;
-      color: #2c3e50;
-      font-weight: 600;
-      padding: 10px;
+    .reveal table td,
+    .reveal table th {
       border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .reveal table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
     }
     
-    .reveal td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      color: #333;
-    }
-    
-    /* Code blocks if present */
-    .reveal pre {
-      background: #f8f9fa;
-      border-radius: 4px;
-      padding: 15px;
-      margin: 1em 0;
-    }
-    
-    .reveal code {
-      font-family: 'Courier New', monospace;
-      color: #333;
-    }
-    
-    /* Strong/bold text */
-    .reveal strong, .reveal b {
-      color: #2c3e50;
-      font-weight: 600;
-    }
-    
-    /* Blockquotes */
-    .reveal blockquote {
-      border-left: 4px solid #3498db;
-      padding-left: 20px;
-      margin: 1em 0;
-      font-style: italic;
-      color: #555;
+    /* Responsive adjustments for columns */
+    @media (max-width: 768px) {
+      .reveal .columns-2,
+      .reveal .columns-3 {
+        grid-template-columns: 1fr;
+      }
+      .reveal img.img-float-left,
+      .reveal img.img-float-right {
+        float: none;
+        margin: 10px auto;
+        display: block;
+      }
     }
   `;
 }

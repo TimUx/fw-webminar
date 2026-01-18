@@ -306,6 +306,19 @@ function createQuillEditor(container, initialContent = '') {
   `;
   toolbarContainer.appendChild(columnsGroup);
   
+  // Create source code toggle button section
+  const sourceCodeGroup = document.createElement('span');
+  sourceCodeGroup.className = 'ql-formats';
+  sourceCodeGroup.innerHTML = `
+    <button class="ql-source-code" type="button" title="HTML Quellcode anzeigen/verbergen" aria-label="HTML Quellcode Toggle">
+      <span style="font-size: 12px;" aria-hidden="true">&lt;/&gt;</span>
+    </button>
+  `;
+  toolbarContainer.appendChild(sourceCodeGroup);
+  
+  // Variable to track source code mode
+  let sourceCodeMode = false;
+  
   // Helper function to set image size
   const setImageSize = (className, displayName) => {
     if (selectedImage) {
@@ -396,6 +409,63 @@ function createQuillEditor(container, initialContent = '') {
   
   toolbarContainer.querySelector('.ql-columns-3').addEventListener('click', () => {
     insertColumns(3, '3-Spalten-Layout eingefügt');
+  });
+  
+  // Add event listener for source code toggle button
+  toolbarContainer.querySelector('.ql-source-code').addEventListener('click', () => {
+    sourceCodeMode = !sourceCodeMode;
+    
+    if (sourceCodeMode) {
+      // Switch to source code mode
+      const htmlContent = quill.root.innerHTML;
+      quill.enable(false); // Disable Quill editing
+      
+      // Create textarea for HTML editing
+      const sourceTextarea = document.createElement('textarea');
+      sourceTextarea.className = 'source-code-textarea';
+      sourceTextarea.value = htmlContent;
+      sourceTextarea.style.cssText = `
+        width: 100%;
+        min-height: 400px;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        resize: vertical;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      `;
+      
+      // Hide Quill editor and show source textarea
+      quill.root.style.display = 'none';
+      editorDiv.appendChild(sourceTextarea);
+      
+      // Highlight the button to show it's active
+      const sourceBtn = toolbarContainer.querySelector('.ql-source-code');
+      sourceBtn.style.background = '#3498db';
+      sourceBtn.style.color = 'white';
+      
+      showNotification('HTML Quellcode-Ansicht aktiviert');
+    } else {
+      // Switch back to WYSIWYG mode
+      const sourceTextarea = editorDiv.querySelector('.source-code-textarea');
+      if (sourceTextarea) {
+        const htmlContent = sourceTextarea.value;
+        quill.root.innerHTML = htmlContent;
+        sourceTextarea.remove();
+      }
+      
+      quill.root.style.display = '';
+      quill.enable(true); // Re-enable Quill editing
+      
+      // Remove button highlight
+      const sourceBtn = toolbarContainer.querySelector('.ql-source-code');
+      sourceBtn.style.background = '';
+      sourceBtn.style.color = '';
+      
+      showNotification('WYSIWYG-Ansicht aktiviert');
+    }
   });
   
   // Set initial content

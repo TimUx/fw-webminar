@@ -847,7 +847,8 @@ hr {
 .ql-toolbar button.ql-image-float-right,
 .ql-toolbar button.ql-image-float-none,
 .ql-toolbar button.ql-columns-2,
-.ql-toolbar button.ql-columns-3 {
+.ql-toolbar button.ql-columns-3,
+.ql-toolbar button.ql-source-code {
   color: #444 !important;
 }
 
@@ -859,7 +860,8 @@ hr {
 .ql-toolbar button.ql-image-float-right span,
 .ql-toolbar button.ql-image-float-none span,
 .ql-toolbar button.ql-columns-2 span,
-.ql-toolbar button.ql-columns-3 span {
+.ql-toolbar button.ql-columns-3 span,
+.ql-toolbar button.ql-source-code span {
   color: #444;
   display: inline-block;
 }
@@ -874,6 +876,7 @@ hr {
 .ql-toolbar button.ql-image-float-none:hover,
 .ql-toolbar button.ql-columns-2:hover,
 .ql-toolbar button.ql-columns-3:hover,
+.ql-toolbar button.ql-source-code:hover,
 .ql-toolbar button.ql-image-small:hover span,
 .ql-toolbar button.ql-image-medium:hover span,
 .ql-toolbar button.ql-image-large:hover span,
@@ -882,7 +885,8 @@ hr {
 .ql-toolbar button.ql-image-float-right:hover span,
 .ql-toolbar button.ql-image-float-none:hover span,
 .ql-toolbar button.ql-columns-2:hover span,
-.ql-toolbar button.ql-columns-3:hover span {
+.ql-toolbar button.ql-columns-3:hover span,
+.ql-toolbar button.ql-source-code:hover span {
   color: #06c !important;
 }
 
@@ -890,5 +894,16 @@ hr {
 .ql-editor img.selected-image {
   outline: 2px solid #3498db;
   outline-offset: 2px;
+}
+
+/* Source Code Textarea */
+.source-code-textarea {
+  background: #f8f9fa;
+  border: 1px solid #ddd !important;
+}
+
+.source-code-textarea:focus {
+  outline: 2px solid #3498db;
+  outline-offset: -2px;
 }
 
