@@ -21,6 +21,7 @@ Eine vollständig selbst gehostete, automatisierte Webinar- und E-Learning-Platt
 - **Backend**: Node.js mit Express
 - **Frontend**: HTML, CSS, JavaScript (Vanilla)
 - **Präsentation**: Reveal.js
+- **WYSIWYG Editor**: TipTap (ProseMirror-based)
 - **Authentifizierung**: JWT + bcrypt
 - **E-Mail**: Nodemailer (SMTP)
 - **Reverse Proxy**: Caddy
@@ -435,6 +436,16 @@ Pull Requests sind willkommen!
 Design basiert auf: https://github.com/TimUx/fw-fragenkatalog
 
 ## Changelog
+
+### Version 1.3.0 (2026)
+- **Migration zu TipTap WYSIWYG Editor**
+  - Moderner, erweiterbarer Editor basierend auf ProseMirror
+  - Alle Funktionen von Quill.js beibehalten
+  - 85% Reduzierung der Code-Komplexität
+  - Bessere Wartbarkeit und Erweiterbarkeit
+  - JSON-basierte Speicherstruktur
+  - Vollständig kompatibel mit bestehenden Webinaren
+  - Details siehe [TIPTAP_MIGRATION.md](TIPTAP_MIGRATION.md)
 
 ### Version 1.2.0 (2026)
 - **Intelligente Filterung von wiederkehrenden Inhalten**

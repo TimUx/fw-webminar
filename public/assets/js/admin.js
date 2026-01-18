@@ -3,6 +3,10 @@ let currentWebinar = null;
 let pptxFiles = [];
 let quillEditors = []; // Store Quill editor instances
 
+// TipTap editor initialization constants
+const TIPTAP_LOAD_MAX_ATTEMPTS = 50;
+const TIPTAP_LOAD_RETRY_DELAY_MS = 100;
+
 // Check authentication
 const token = localStorage.getItem('adminToken');
 if (!token) {
@@ -176,327 +180,56 @@ function insertColumns(quill, numColumns, editorContainer) {
 }
 
 // Helper to create Quill editor with image upload and tables
-function createQuillEditor(container, initialContent = '') {
-  const editorDiv = document.createElement('div');
-  editorDiv.className = 'quill-editor-container';
-  
-  // Replace textarea with Quill editor
+/**
+ * Create TipTap editor instance
+ * @param {HTMLElement} container - The container element
+ * @param {string} initialContent - Initial HTML content
+ * @returns {Promise<Object>} Editor instance
+ */
+async function createTipTapEditor(container, initialContent = '') {
+  // Find the textarea element
   const textarea = container.querySelector('.slide-content');
-  if (textarea) {
-    textarea.style.display = 'none';
-    textarea.parentNode.insertBefore(editorDiv, textarea);
-  } else {
-    container.appendChild(editorDiv);
+  
+  if (!textarea) {
+    console.error('Textarea with class "slide-content" not found');
+    return null;
   }
   
-  // Variable to track selected image
-  let selectedImage = null;
+  // Wait for window.createTipTapEditor to be available
+  // It's loaded as an ES module, so it might not be immediately available
+  let attempts = 0;
+  while (!window.createTipTapEditor && attempts < TIPTAP_LOAD_MAX_ATTEMPTS) {
+    await new Promise(resolve => setTimeout(resolve, TIPTAP_LOAD_RETRY_DELAY_MS));
+    attempts++;
+  }
   
-  // Initialize Quill with custom toolbar including headings and table
-  const quill = new Quill(editorDiv, {
-    theme: 'snow',
-    placeholder: 'Folieninhalt eingeben... Sie können Text formatieren, Tabellen und Bilder hinzufügen.',
-    modules: {
-      toolbar: {
-        container: [
-          // First row: Headings and basic formatting
-          [{ 'header': [2, 3, 4, 5, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ 'color': [] }, { 'background': [] }],
-          
-          // Second row: Lists and alignment
-          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-          [{ 'align': [] }],
-          
-          // Third row: Links, images, tables
-          ['link', 'image', 'table'],
-          ['clean']
-        ],
-        handlers: {
-          image: function() {
-            const input = document.createElement('input');
-            input.setAttribute('type', 'file');
-            input.setAttribute('accept', 'image/*');
-            input.click();
-            
-            input.onchange = async () => {
-              const file = input.files[0];
-              if (file) {
-                // Check file size (max 5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                  showNotification('Bild ist zu groß. Maximale Größe: 5MB', true);
-                  return;
-                }
-                
-                // Show loading notification
-                showNotification('Bild wird hochgeladen...');
-                
-                try {
-                  const url = await uploadImageToServer(file);
-                  
-                  // Insert image into editor
-                  const range = this.quill.getSelection(true);
-                  this.quill.insertEmbed(range.index, 'image', url);
-                  this.quill.setSelection(range.index + 1);
-                  
-                  // Apply medium size class to the newly inserted image
-                  // Use nextTick to ensure DOM is updated
-                  const applyDefaultSize = () => {
-                    // Find images without any size class
-                    const images = this.quill.root.querySelectorAll('img:not(.img-small):not(.img-medium):not(.img-large):not(.img-full)');
-                    for (let i = 0; i < images.length; i++) {
-                      const img = images[i];
-                      if (img.src === url) {
-                        img.classList.add('img-medium');
-                        break;
-                      }
-                    }
-                  };
-                  
-                  // Try immediately, then with small delay as fallback
-                  applyDefaultSize();
-                  requestAnimationFrame(() => applyDefaultSize());
-                  
-                  showNotification('Bild erfolgreich hochgeladen');
-                } catch (error) {
-                  // Error notification already shown in uploadImageToServer
-                }
-              }
-            };
-          },
-          table: function() {
-            insertTable(this.quill, editorDiv);
-          }
-        }
-      }
-    }
-  });
+  if (!window.createTipTapEditor) {
+    console.error('TipTap editor function not available');
+    showNotification('Editor konnte nicht geladen werden', true);
+    return null;
+  }
   
-  // Handle image selection for resizing
-  quill.root.addEventListener('click', (e) => {
-    if (e.target.tagName === 'IMG') {
-      // Deselect previous image
-      if (selectedImage) {
-        selectedImage.classList.remove('selected-image');
-      }
-      // Select new image
-      selectedImage = e.target;
-      selectedImage.classList.add('selected-image');
-    } else {
-      // Clicked outside image, deselect
-      if (selectedImage) {
-        selectedImage.classList.remove('selected-image');
-        selectedImage = null;
-      }
-    }
-  });
-  
-  // Add custom toolbar buttons for image sizing and columns
-  const toolbar = quill.getModule('toolbar');
-  const toolbarContainer = toolbar.container;
-  
-  // Create image sizing buttons section
-  const imageSizingGroup = document.createElement('span');
-  imageSizingGroup.className = 'ql-formats';
-  imageSizingGroup.innerHTML = `
-    <button class="ql-image-small" type="button" title="Bild klein (25%)">
-      <span style="font-size: 10px;">S</span>
-    </button>
-    <button class="ql-image-medium" type="button" title="Bild mittel (50%)">
-      <span style="font-size: 12px;">M</span>
-    </button>
-    <button class="ql-image-large" type="button" title="Bild groß (75%)">
-      <span style="font-size: 14px;">L</span>
-    </button>
-    <button class="ql-image-full" type="button" title="Bild volle Breite (100%)">
-      <span style="font-size: 16px;">XL</span>
-    </button>
-  `;
-  toolbarContainer.appendChild(imageSizingGroup);
-  
-  // Create image alignment buttons section
-  const imageAlignGroup = document.createElement('span');
-  imageAlignGroup.className = 'ql-formats';
-  imageAlignGroup.innerHTML = `
-    <button class="ql-image-float-left" type="button" title="Bild links mit Textumfluss" aria-label="Bild links ausrichten">
-      <span style="font-size: 12px;" aria-hidden="true">◀️</span>
-    </button>
-    <button class="ql-image-float-right" type="button" title="Bild rechts mit Textumfluss" aria-label="Bild rechts ausrichten">
-      <span style="font-size: 12px;" aria-hidden="true">▶️</span>
-    </button>
-    <button class="ql-image-float-none" type="button" title="Textumfluss entfernen" aria-label="Textumfluss entfernen">
-      <span style="font-size: 12px;" aria-hidden="true">⬛</span>
-    </button>
-  `;
-  toolbarContainer.appendChild(imageAlignGroup);
-  
-  // Create column layout buttons section
-  const columnsGroup = document.createElement('span');
-  columnsGroup.className = 'ql-formats';
-  columnsGroup.innerHTML = `
-    <button class="ql-columns-2" type="button" title="2 Spalten einfügen" aria-label="2 Spalten Layout einfügen">
-      <span style="font-size: 10px;" aria-hidden="true">▢▢</span>
-    </button>
-    <button class="ql-columns-3" type="button" title="3 Spalten einfügen" aria-label="3 Spalten Layout einfügen">
-      <span style="font-size: 10px;" aria-hidden="true">▢▢▢</span>
-    </button>
-  `;
-  toolbarContainer.appendChild(columnsGroup);
-  
-  // Create source code toggle button section
-  const sourceCodeGroup = document.createElement('span');
-  sourceCodeGroup.className = 'ql-formats';
-  sourceCodeGroup.innerHTML = `
-    <button class="ql-source-code" type="button" title="HTML Quellcode anzeigen/verbergen" aria-label="HTML Quellcode Toggle">
-      <span style="font-size: 12px;" aria-hidden="true">&lt;/&gt;</span>
-    </button>
-  `;
-  toolbarContainer.appendChild(sourceCodeGroup);
-  
-  // Variable to track source code mode
-  let sourceCodeMode = false;
-  
-  // Helper function to set image size
-  const setImageSize = (className, displayName) => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
-      if (className) {
-        selectedImage.classList.add(className);
-      }
-      showNotification(`Bildgröße auf "${displayName}" gesetzt`);
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
-  };
-  
-  // Helper function to set image float
-  const setImageFloat = (className, displayName) => {
-    if (selectedImage) {
-      selectedImage.classList.remove('img-float-left', 'img-float-right');
-      if (className) {
-        selectedImage.classList.add(className);
-      }
-      showNotification(displayName);
-    } else {
-      showNotification('Bitte wählen Sie zuerst ein Bild aus', true);
-    }
-  };
-  
-  // Helper function to insert columns safely
-  
-  // Add event listeners for image sizing buttons
-  toolbarContainer.querySelector('.ql-image-small').addEventListener('click', () => {
-    setImageSize('img-small', 'klein');
-  });
-  
-  toolbarContainer.querySelector('.ql-image-medium').addEventListener('click', () => {
-    setImageSize('img-medium', 'mittel');
-  });
-  
-  toolbarContainer.querySelector('.ql-image-large').addEventListener('click', () => {
-    setImageSize('img-large', 'groß');
-  });
-  
-  toolbarContainer.querySelector('.ql-image-full').addEventListener('click', () => {
-    setImageSize('img-full', 'volle Breite');
-  });
-  
-  // Add event listeners for image alignment buttons
-  toolbarContainer.querySelector('.ql-image-float-left').addEventListener('click', () => {
-    setImageFloat('img-float-left', 'Bild links ausgerichtet mit Textumfluss');
-  });
-  
-  toolbarContainer.querySelector('.ql-image-float-right').addEventListener('click', () => {
-    setImageFloat('img-float-right', 'Bild rechts ausgerichtet mit Textumfluss');
-  });
-  
-  toolbarContainer.querySelector('.ql-image-float-none').addEventListener('click', () => {
-    setImageFloat(null, 'Textumfluss entfernt');
-  });
-  
-  // Add event listeners for column layout buttons
-  toolbarContainer.querySelector('.ql-columns-2').addEventListener('click', () => {
-    insertColumns(quill, 2, editorDiv);
-  });
-  
-  toolbarContainer.querySelector('.ql-columns-3').addEventListener('click', () => {
-    insertColumns(quill, 3, editorDiv);
-  });
-  
-  // Add event listener for source code toggle button
-  toolbarContainer.querySelector('.ql-source-code').addEventListener('click', () => {
-    sourceCodeMode = !sourceCodeMode;
-    
-    if (sourceCodeMode) {
-      // Switch to source code mode
-      const htmlContent = quill.root.innerHTML;
-      quill.enable(false); // Disable Quill editing
-      
-      // Create textarea for HTML editing
-      const sourceTextarea = document.createElement('textarea');
-      sourceTextarea.className = 'source-code-textarea';
-      sourceTextarea.value = htmlContent;
-      sourceTextarea.style.cssText = `
-        width: 100%;
-        min-height: 400px;
-        padding: 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        resize: vertical;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-      `;
-      
-      // Hide Quill editor and show source textarea
-      quill.root.style.display = 'none';
-      editorDiv.appendChild(sourceTextarea);
-      
-      // Highlight the button to show it's active
-      const sourceBtn = toolbarContainer.querySelector('.ql-source-code');
-      sourceBtn.style.background = '#3498db';
-      sourceBtn.style.color = 'white';
-      
-      showNotification('HTML Quellcode-Ansicht aktiviert');
-    } else {
-      // Switch back to WYSIWYG mode
-      const sourceTextarea = editorDiv.querySelector('.source-code-textarea');
-      if (sourceTextarea) {
-        const htmlContent = sourceTextarea.value;
-        quill.root.innerHTML = htmlContent;
-        sourceTextarea.remove();
-      }
-      
-      quill.root.style.display = '';
-      quill.enable(true); // Re-enable Quill editing
-      
-      // Remove button highlight
-      const sourceBtn = toolbarContainer.querySelector('.ql-source-code');
-      sourceBtn.style.background = '';
-      sourceBtn.style.color = '';
-      
-      showNotification('WYSIWYG-Ansicht aktiviert');
-    }
-  });
-  
-  // Set initial content
-  if (initialContent) {
-    quill.root.innerHTML = initialContent;
-    // Also sync initial content to textarea so it's saved even without changes
+  // Callback to sync content back to textarea
+  const onUpdateCallback = (htmlContent) => {
     if (textarea) {
-      textarea.value = initialContent;
+      textarea.value = htmlContent;
     }
-  }
+  };
   
-  // Sync Quill content back to hidden textarea (if it exists)
-  if (textarea) {
-    quill.on('text-change', () => {
-      textarea.value = quill.root.innerHTML;
-    });
-  }
+  // Initialize TipTap editor
+  const editorInstance = await window.createTipTapEditor(textarea, initialContent, onUpdateCallback);
   
-  return quill;
+  return editorInstance;
+}
+
+/**
+ * Legacy wrapper for backward compatibility
+ * @param {HTMLElement} container - The container element
+ * @param {string} initialContent - Initial HTML content
+ * @returns {Promise<Object>} Editor instance
+ */
+function createQuillEditor(container, initialContent = '') {
+  return createTipTapEditor(container, initialContent);
 }
 
 // Helper to get file type from filename
@@ -783,9 +516,9 @@ async function editWebinar(id) {
     // Load slides
     const slidesContainer = document.getElementById('slidesContainer');
     slidesContainer.innerHTML = '';
-    (currentWebinar.slides || []).forEach((slide, index) => {
-      addSlide(slide);
-    });
+    for (const slide of currentWebinar.slides || []) {
+      await addSlide(slide);
+    }
     
     // Load questions
     const questionsContainer = document.getElementById('questionsContainer');
@@ -826,7 +559,7 @@ async function deleteWebinar(id) {
 }
 
 // Slide management
-function addSlide(slide = null) {
+async function addSlide(slide = null) {
   const container = document.getElementById('slidesContainer');
   const index = container.children.length;
   
@@ -857,9 +590,9 @@ function addSlide(slide = null) {
   
   container.appendChild(div);
   
-  // Initialize Quill editor for this slide's content
+  // Initialize TipTap editor for this slide's content
   const contentContainer = div.querySelector('.form-group:nth-child(3)');
-  const quillEditor = createQuillEditor(contentContainer, slide?.content || '');
+  const quillEditor = await createQuillEditor(contentContainer, slide?.content || '');
   quillEditors.push(quillEditor);
   
   // Update all slide numbers after adding
