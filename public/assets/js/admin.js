@@ -776,7 +776,7 @@ function addSlide(slide = null) {
   container.appendChild(div);
   
   // Initialize Quill editor for this slide's content
-  const contentContainer = div.querySelector('.form-group:nth-child(2)');
+  const contentContainer = div.querySelector('.form-group:nth-child(3)');
   const quillEditor = createQuillEditor(contentContainer, slide?.content || '');
   quillEditors.push(quillEditor);
   
