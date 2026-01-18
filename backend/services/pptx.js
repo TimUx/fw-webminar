@@ -51,7 +51,7 @@ function getCommonPresentationStyles() {
     }
     
     /* Text content */
-    .reveal p, .reveal li {
+    .reveal p {
       font-size: clamp(14px, 1.5vw, 18px);
       line-height: 1.6;
       margin-bottom: 0.8em;
@@ -64,7 +64,10 @@ function getCommonPresentationStyles() {
     }
     
     .reveal li {
+      font-size: clamp(14px, 1.5vw, 18px);
+      line-height: 1.6;
       margin-bottom: 0.5em;
+      color: #333;
     }
     
     /* Links matching main site accent color */
