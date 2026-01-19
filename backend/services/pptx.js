@@ -475,8 +475,7 @@ async function generateSimpleSlides(webinarId, slideData) {
   const outputDir = path.join(SLIDES_DIR, webinarId);
   await fs.mkdir(outputDir, { recursive: true });
   
-  // Use the new slideRenderer to generate presentation HTML
-  // This handles both HTML (legacy) and TipTap JSON formats
+  // Use the slideRenderer to generate presentation HTML from TipTap JSON
   const revealHtml = generatePresentationHtml(slideData, 'Webinar Präsentation');
   
   await fs.writeFile(path.join(outputDir, 'presentation.html'), revealHtml, 'utf-8');

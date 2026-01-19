@@ -164,34 +164,28 @@ Diese Implementierung integriert TipTap als WYSIWYG-Editor mit benutzerdefiniert
 }
 ```
 
-## Rückwärtskompatibilität
+## Datenformat
 
-Das System unterstützt beide Formate:
+Das System verwendet ausschließlich TipTap JSON Format für alle Slide-Inhalte:
 
-**HTML (Legacy):**
+**TipTap JSON Format:**
 ```javascript
 {
-  "title": "Alte Slide",
-  "content": "<h2>Titel</h2><p>Text</p>",
-  "speakerNote": "Notiz"
-}
-```
-
-**TipTap JSON (Neu):**
-```javascript
-{
-  "title": "Neue Slide",
+  "title": "Slide Titel",
   "content": {
     "type": "doc",
-    "content": [...]
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [{ "type": "text", "text": "Slide Inhalt" }]
+      }
+    ]
   },
-  "speakerNote": "Notiz"
+  "speakerNote": "Notiz für Sprachausgabe"
 }
 ```
 
-Die Funktion `tiptapJsonToHtml()` erkennt automatisch das Format:
-- `typeof content === 'string'` → HTML, direkt zurückgeben
-- `typeof content === 'object'` → JSON, generateHTML() verwenden
+Alle Slides werden in diesem Format gespeichert und von `tiptapJsonToHtml()` mit `@tiptap/html` in Reveal.js HTML konvertiert.
 
 ## Features
 
@@ -261,12 +255,6 @@ Die Funktion `tiptapJsonToHtml()` erkennt automatisch das Format:
 - [ ] Seitenkonvertierung prüfen
 - [ ] Bilder in generierten Slides prüfen
 - [ ] Reveal.js Präsentation anzeigen
-
-### Rückwärtskompatibilität
-- [ ] Existierende HTML-Slides laden
-- [ ] HTML-Slides bearbeiten
-- [ ] HTML → JSON Konvertierung bei Speicherung
-- [ ] Reveal.js Rendering von alten Slides
 
 ## Deployment
 

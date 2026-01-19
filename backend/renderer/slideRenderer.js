@@ -147,18 +147,12 @@ const extensions = [
 ];
 
 /**
- * Convert TipTap JSON or HTML to HTML string
- * Handles both new TipTap JSON format and legacy HTML strings
- * @param {Object|string} content - TipTap JSON content or HTML string
+ * Convert TipTap JSON to HTML string
+ * @param {Object} content - TipTap JSON content
  * @returns {string} HTML string
  */
 function tiptapJsonToHtml(content) {
   try {
-    // If input is already a string (HTML), return it
-    if (typeof content === 'string') {
-      return content;
-    }
-    
     // Generate HTML from TipTap JSON
     return generateHTML(content, extensions);
   } catch (error) {
@@ -170,22 +164,16 @@ function tiptapJsonToHtml(content) {
 
 /**
  * Generate Reveal.js slide HTML from slide data
- * @param {Object} slide - Slide object with title, content (JSON or HTML), speakerNote
+ * @param {Object} slide - Slide object with title, content (TipTap JSON), speakerNote
  * @returns {string} Reveal.js <section> HTML
  */
 function generateSlideHtml(slide) {
   const title = slide.title || '';
   let content = '';
   
-  // Convert content from TipTap JSON to HTML if needed
+  // Convert content from TipTap JSON to HTML
   if (slide.content) {
-    if (typeof slide.content === 'object') {
-      // TipTap JSON format
-      content = tiptapJsonToHtml(slide.content);
-    } else {
-      // Already HTML string
-      content = slide.content;
-    }
+    content = tiptapJsonToHtml(slide.content);
   }
   
   const speakerNote = slide.speakerNote || '';

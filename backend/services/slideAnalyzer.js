@@ -460,40 +460,6 @@ function formatSlideContentAsJSON(text, images) {
 }
 
 /**
- * Legacy function for backward compatibility
- * Generates HTML from text and images
- * DEPRECATED: Use formatSlideContentAsJSON() for new implementations
- */
-function formatSlideContent(text, images) {
-  let content = '';
-  
-  // Add text content with basic formatting
-  if (text) {
-    const paragraphs = text.split(/\n+/).filter(p => p.trim());
-    if (paragraphs.length > 0) {
-      // First paragraph as heading if it's short
-      if (paragraphs[0].length < 100) {
-        content += `<h3>${escapeHtml(paragraphs[0])}</h3>\n`;
-        paragraphs.shift();
-      }
-      // Rest as paragraphs
-      paragraphs.forEach(p => {
-        content += `<p>${escapeHtml(p)}</p>\n`;
-      });
-    }
-  }
-  
-  // Add images
-  if (images && images.length > 0) {
-    images.forEach(img => {
-      content += `<img src="${img.publicPath}" alt="Slide Image" style="max-width: 100%; height: auto; margin: 20px 0;">\n`;
-    });
-  }
-  
-  return content;
-}
-
-/**
  * Extract PDF pages as images using pdftoppm
  */
 async function extractPDFImages(filename, webinarId) {

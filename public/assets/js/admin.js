@@ -224,16 +224,6 @@ async function createTipTapEditor(container, initialContent = '') {
   return editorInstance;
 }
 
-/**
- * Legacy wrapper for backward compatibility
- * @param {HTMLElement} container - The container element
- * @param {string} initialContent - Initial HTML content
- * @returns {Promise<Object>} Editor instance
- */
-function createQuillEditor(container, initialContent = '') {
-  return createTipTapEditor(container, initialContent);
-}
-
 // Helper to get file type from filename
 function getFileType(filename) {
   return filename.toLowerCase().endsWith('.pdf') ? 'PDF' : 'PPTX';
@@ -565,18 +555,11 @@ async function addSlide(slide = null) {
   const container = document.getElementById('slidesContainer');
   const index = container.children.length;
   
-  // Prepare content for editor initialization
-  // If content is an object (TipTap JSON), use it directly
-  // If content is a string (HTML), it will be parsed by TipTap
+  // Prepare content for editor initialization (TipTap JSON format)
   let initialContent = '';
   if (slide?.content) {
-    if (typeof slide.content === 'object') {
-      // TipTap JSON format - convert to JSON string for data attribute
-      initialContent = JSON.stringify(slide.content);
-    } else {
-      // Legacy HTML format - will be handled by TipTap
-      initialContent = slide.content;
-    }
+    // Content is TipTap JSON - convert to string for textarea
+    initialContent = JSON.stringify(slide.content);
   }
   
   const div = document.createElement('div');
@@ -609,20 +592,11 @@ async function addSlide(slide = null) {
   // Initialize TipTap editor for this slide's content
   const contentContainer = div.querySelector('.form-group:nth-child(3)');
   
-  // Pass the appropriate initial content format to the editor
-  let editorInitialContent = '';
-  if (slide?.content) {
-    if (typeof slide.content === 'object') {
-      // TipTap JSON - editor can handle this directly
-      editorInitialContent = slide.content;
-    } else {
-      // HTML string - editor will parse it
-      editorInitialContent = slide.content;
-    }
-  }
+  // Pass TipTap JSON to editor
+  const editorInitialContent = slide?.content || '';
   
-  const quillEditor = await createQuillEditor(contentContainer, editorInitialContent);
-  quillEditors.push(quillEditor);
+  const tiptapEditor = await createTipTapEditor(contentContainer, editorInitialContent);
+  quillEditors.push(tiptapEditor);
   
   // Update all slide numbers after adding
   updateSlideNumbers();
@@ -746,13 +720,8 @@ document.getElementById('webinarForm').addEventListener('submit', async (e) => {
       let content = '';
       
       if (contentTextarea && contentTextarea.value) {
-        try {
-          // Try to parse as JSON (new TipTap format)
-          content = JSON.parse(contentTextarea.value);
-        } catch (e) {
-          // If parsing fails, it's probably legacy HTML, keep as string
-          content = contentTextarea.value;
-        }
+        // Parse TipTap JSON format
+        content = JSON.parse(contentTextarea.value);
       }
       
       return {
