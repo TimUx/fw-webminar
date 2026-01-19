@@ -94,8 +94,11 @@ andere Browser.
 ### Browser Detection:
 ```javascript
 // Detect low-quality voices
-const lowQualityIndicators = ['espeak', 'eSpeakNG', 'eSpeak NG'];
-const isLowQuality = voice.name.toLowerCase().includes(indicator);
+const LOW_QUALITY_VOICE_INDICATORS = ['espeak', 'espeakng', 'espeak ng'];
+const voiceNameLower = voice.name.toLowerCase();
+const isLowQuality = LOW_QUALITY_VOICE_INDICATORS.some(indicator => 
+  voiceNameLower.includes(indicator)
+);
 
 // Detect current browser
 const isChrome = userAgent.includes('chrome') && !userAgent.includes('edge');

@@ -1,6 +1,9 @@
 const API_BASE = '/api';
 const MINIMUM_SLIDE_DURATION = 10000; // 10 seconds in milliseconds
 
+// Low-quality voice detection (constant to avoid recreation)
+const LOW_QUALITY_VOICE_INDICATORS = ['espeak', 'espeakng', 'espeak ng'];
+
 let currentWebinar = null;
 let currentSlideIndex = 0;
 let currentQuestionIndex = 0;
@@ -353,9 +356,8 @@ function selectBestGermanVoice() {
 // Check voice quality and show browser recommendation if needed
 function checkVoiceQuality(voice) {
   // Check if we're using a low-quality voice (like eSpeak in Firefox)
-  const lowQualityIndicators = ['espeak', 'espeakng', 'espeak ng'];
   const voiceNameLower = voice.name.toLowerCase();
-  const isLowQuality = lowQualityIndicators.some(indicator => 
+  const isLowQuality = LOW_QUALITY_VOICE_INDICATORS.some(indicator => 
     voiceNameLower.includes(indicator)
   );
   
