@@ -192,7 +192,7 @@
 /* Table Styles */
 .tiptap-content table {
   border-collapse: collapse;
-  width: 100%;
+  width: auto;
   margin: 15px 0;
   border: 1px solid #ddd;
 }
@@ -200,9 +200,9 @@
 .tiptap-content table td,
 .tiptap-content table th {
   border: 1px solid #ddd;
-  padding: 8px 12px;
+  padding: 4px 8px;
   text-align: left;
-  min-width: 50px;
+  min-width: 40px;
 }
 
 .tiptap-content table th {
