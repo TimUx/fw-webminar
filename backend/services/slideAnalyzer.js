@@ -206,8 +206,8 @@ function removeRepetitiveImages(images, repetitiveImages) {
  * 3. Regenerates the slide content without repetitive elements
  * 
  * Note: The speakerNote field contains the raw extracted text and is the source
- * for both detection and filtering. After filtering, formatSlideContent() is called
- * to regenerate the HTML content based on the filtered text and images.
+ * for both detection and filtering. After filtering, formatSlideContentAsJSON() is called
+ * to regenerate the TipTap JSON content based on the filtered text and images.
  */
 function filterRepetitiveContent(slides) {
   if (slides.length < 2) {

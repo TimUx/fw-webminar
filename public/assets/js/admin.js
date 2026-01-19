@@ -720,8 +720,14 @@ document.getElementById('webinarForm').addEventListener('submit', async (e) => {
       let content = '';
       
       if (contentTextarea && contentTextarea.value) {
-        // Parse TipTap JSON format
-        content = JSON.parse(contentTextarea.value);
+        try {
+          // Parse TipTap JSON format
+          content = JSON.parse(contentTextarea.value);
+        } catch (e) {
+          console.error('Error parsing slide content JSON:', e);
+          showNotification('Fehler beim Verarbeiten der Slide-Inhalte', true);
+          throw e;
+        }
       }
       
       return {
