@@ -66,6 +66,13 @@
       border-radius: 4px;
     }
     
+    /* Hide empty column blocks to avoid visual clutter */
+    .reveal .column:empty,
+    .reveal .two-column-block:empty,
+    .reveal .three-column-block:empty {
+      display: none;
+    }
+    
     /* Hero block */
     .reveal .hero-block {
       text-align: center;
@@ -132,7 +139,7 @@
     .reveal .tiptap-table th,
     .reveal .tiptap-table td {
       border: 1px solid #ddd;
-      padding: 4px 8px;
+      padding: 2px 8px;
       text-align: left;
       vertical-align: top;
     }

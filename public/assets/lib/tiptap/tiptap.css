@@ -201,7 +201,7 @@
 .tiptap-content table td,
 .tiptap-content table th {
   border: 1px solid #ddd;
-  padding: 4px 8px;
+  padding: 2px 8px;
   text-align: left;
   min-width: 40px;
   vertical-align: top;
@@ -314,6 +314,13 @@
 .tiptap-content .column:focus {
   border-color: #3498db;
   outline: none;
+}
+
+/* Hide empty column blocks in rendered content */
+.tiptap-content .column:empty,
+.tiptap-content .two-column-block:empty,
+.tiptap-content .three-column-block:empty {
+  display: none;
 }
 
 /* Text Alignment */
