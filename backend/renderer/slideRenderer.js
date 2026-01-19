@@ -17,6 +17,27 @@ const { Color } = require('@tiptap/extension-color');
 const { TextStyle } = require('@tiptap/extension-text-style');
 const { Node } = require('@tiptap/core');
 
+// Extend the Image extension to properly handle class attributes
+const CustomImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      class: {
+        default: 'tiptap-image',
+        parseHTML: element => element.getAttribute('class') || 'tiptap-image',
+        renderHTML: attributes => {
+          if (!attributes.class) {
+            return {};
+          }
+          return {
+            class: attributes.class
+          };
+        },
+      },
+    };
+  },
+});
+
 // Define custom nodes (matching frontend definitions)
 const Column = Node.create({
   name: 'column',
@@ -110,10 +131,9 @@ const extensions = [
       levels: [2, 3, 4, 5]
     }
   }),
-  Image.configure({
-    HTMLAttributes: {
-      class: 'tiptap-image'
-    }
+  CustomImage.configure({
+    inline: true,
+    allowBase64: true
   }),
   Link.configure({
     openOnClick: false,
@@ -228,6 +248,32 @@ function generatePresentationHtml(slides, title = 'Webinar') {
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
   
   <style>
+    /* Reduce Reveal.js default font sizes by 50% */
+    .reveal {
+      font-size: 20px; /* Default is 40px */
+    }
+    
+    .reveal h1 {
+      font-size: 1.5em; /* Reduced from 3em */
+    }
+    
+    .reveal h2 {
+      font-size: 1.25em; /* Reduced from 2.5em */
+    }
+    
+    .reveal h3 {
+      font-size: 1.1em; /* Reduced from 2.2em */
+    }
+    
+    .reveal h4 {
+      font-size: 1em; /* Reduced from 2em */
+    }
+    
+    .reveal p {
+      font-size: 1em;
+      line-height: 1.5;
+    }
+    
     /* Custom styles for TipTap content in Reveal.js */
     .reveal .slide-content {
       text-align: left;

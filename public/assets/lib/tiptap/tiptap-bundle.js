@@ -21,6 +21,27 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
   // Get TipTap modules from bundled file
   const { Editor, Node, StarterKit, Image, Link, Table, TableRow, TableCell, TableHeader, TextAlign, Underline, Color, TextStyle } = window.TipTapBundle;
   
+  // Extend the Image extension to properly handle class attributes
+  const CustomImage = Image.extend({
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        class: {
+          default: 'tiptap-image',
+          parseHTML: element => element.getAttribute('class') || 'tiptap-image',
+          renderHTML: attributes => {
+            if (!attributes.class) {
+              return {};
+            }
+            return {
+              class: attributes.class
+            };
+          },
+        },
+      };
+    },
+  });
+  
   // Define custom nodes for layout blocks
   const Column = Node.create({
     name: 'column',
@@ -246,10 +267,9 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
           levels: [2, 3, 4, 5]
         }
       }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'tiptap-image'
-        }
+      CustomImage.configure({
+        inline: true,
+        allowBase64: true
       }),
       Link.configure({
         openOnClick: false,
@@ -509,10 +529,20 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       return;
     }
     
-    // Remove all size classes
-    img.classList.remove('img-small', 'img-medium', 'img-large', 'img-full');
-    // Add new size class
-    img.classList.add(className);
+    // Get the position of the image node in the editor
+    const pos = editor.view.posAtDOM(img, 0);
+    if (pos === null || pos === undefined) return;
+    
+    // Get current classes and update them
+    const currentClasses = img.className.split(' ').filter(c => c && !c.startsWith('img-'));
+    const newClasses = [...currentClasses, className].join(' ');
+    
+    // Update the image node in TipTap's document
+    editor.chain()
+      .focus()
+      .setNodeSelection(pos)
+      .updateAttributes('image', { class: newClasses })
+      .run();
     
     const sizeNames = {
       'img-small': 'Klein (25%)',
@@ -534,23 +564,36 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       return;
     }
     
-    // Remove all float classes
-    img.classList.remove('img-float-left', 'img-float-right');
+    // Get the position of the image node in the editor
+    const pos = editor.view.posAtDOM(img, 0);
+    if (pos === null || pos === undefined) return;
     
-    // Add new float class if specified
+    // Get current classes, remove old float classes, add new one
+    const currentClasses = img.className.split(' ')
+      .filter(c => c && !c.startsWith('img-float-'));
+    
     if (className) {
-      img.classList.add(className);
-      
-      const floatNames = {
-        'img-float-left': 'Links',
-        'img-float-right': 'Rechts'
-      };
-      
-      if (window.showNotification) {
+      currentClasses.push(className);
+    }
+    
+    const newClasses = currentClasses.join(' ');
+    
+    // Update the image node in TipTap's document
+    editor.chain()
+      .focus()
+      .setNodeSelection(pos)
+      .updateAttributes('image', { class: newClasses })
+      .run();
+    
+    const floatNames = {
+      'img-float-left': 'Links',
+      'img-float-right': 'Rechts'
+    };
+    
+    if (window.showNotification) {
+      if (className) {
         window.showNotification(`Bildposition geändert: ${floatNames[className]}`);
-      }
-    } else {
-      if (window.showNotification) {
+      } else {
         window.showNotification('Textumfluss entfernt');
       }
     }
