@@ -280,7 +280,7 @@ function selectBestGermanVoice() {
   
   if (germanVoices.length === 0) {
     console.warn('No German voices available, using default');
-    showBrowserRecommendation('no-voices');
+    showBrowserRecommendation();
     return;
   }
   
@@ -351,18 +351,24 @@ function selectBestGermanVoice() {
 // Check voice quality and show browser recommendation if needed
 function checkVoiceQuality(voice) {
   // Check if we're using a low-quality voice (like eSpeak in Firefox)
-  const lowQualityIndicators = ['espeak', 'eSpeakNG', 'eSpeak NG'];
+  const lowQualityIndicators = ['espeak', 'espeakng', 'espeak ng'];
+  const voiceNameLower = voice.name.toLowerCase();
   const isLowQuality = lowQualityIndicators.some(indicator => 
-    voice.name.toLowerCase().includes(indicator.toLowerCase())
+    voiceNameLower.includes(indicator)
   );
   
   if (isLowQuality || voice.localService) {
-    showBrowserRecommendation('low-quality');
+    showBrowserRecommendation();
   }
 }
 
 // Show browser recommendation notice
-function showBrowserRecommendation(reason) {
+function showBrowserRecommendation() {
+  // Check if already shown in this session
+  if (sessionStorage.getItem('browserRecommendationShown') === 'true') {
+    return;
+  }
+  
   // Detect current browser
   const userAgent = navigator.userAgent.toLowerCase();
   const isChrome = userAgent.includes('chrome') && !userAgent.includes('edge') && !userAgent.includes('edg');
