@@ -195,6 +195,7 @@
   width: auto;
   margin: 15px 0;
   border: 1px solid #ddd;
+  table-layout: auto;
 }
 
 .tiptap-content table td,
@@ -203,6 +204,7 @@
   padding: 4px 8px;
   text-align: left;
   min-width: 40px;
+  vertical-align: top;
 }
 
 .tiptap-content table th {

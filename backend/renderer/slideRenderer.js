@@ -359,16 +359,18 @@ function generatePresentationHtml(slides, title = 'Webinar') {
     
     /* Tables */
     .reveal .tiptap-table {
-      width: 100%;
+      width: auto;
       border-collapse: collapse;
       margin: 20px 0;
+      table-layout: auto;
     }
     
     .reveal .tiptap-table th,
     .reveal .tiptap-table td {
       border: 1px solid #ddd;
-      padding: 12px;
+      padding: 4px 8px;
       text-align: left;
+      vertical-align: top;
     }
     
     .reveal .tiptap-table th {
