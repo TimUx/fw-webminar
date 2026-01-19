@@ -13,8 +13,8 @@ const TableCell = require('@tiptap/extension-table-cell').default;
 const TableHeader = require('@tiptap/extension-table-header').default;
 const TextAlign = require('@tiptap/extension-text-align').default;
 const Underline = require('@tiptap/extension-underline').default;
-const Color = require('@tiptap/extension-color').default;
-const TextStyle = require('@tiptap/extension-text-style').default;
+const { Color } = require('@tiptap/extension-color');
+const { TextStyle } = require('@tiptap/extension-text-style');
 const { Node } = require('@tiptap/core');
 
 // Define custom nodes (matching frontend definitions)
