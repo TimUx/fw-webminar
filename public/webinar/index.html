@@ -5,6 +5,133 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Webinar Platform</title>
   <link rel="stylesheet" href="/assets/css/webinar.css?v=1768652225">
+  
+  <!-- Reveal.js CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+  
+  <style>
+    /* Custom styles for TipTap content in Reveal.js */
+    .reveal .slide-content {
+      text-align: left;
+    }
+    
+    /* Column layouts */
+    .reveal .two-column-block,
+    .reveal .columns-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .reveal .three-column-block,
+    .reveal .columns-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .reveal .column {
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    /* Hero block */
+    .reveal .hero-block {
+      text-align: center;
+      padding: 60px 40px;
+      margin: 30px 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      color: white;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .reveal .hero-title {
+      font-size: 2.5em;
+      font-weight: bold;
+      margin: 0 0 20px 0;
+      line-height: 1.2;
+    }
+    
+    .reveal .hero-subtitle {
+      font-size: 1.3em;
+      margin: 0;
+      opacity: 0.95;
+    }
+    
+    /* Images */
+    .reveal img.img-small {
+      max-width: 25%;
+      height: auto;
+    }
+    
+    .reveal img.img-medium {
+      max-width: 50%;
+      height: auto;
+    }
+    
+    .reveal img.img-large {
+      max-width: 75%;
+      height: auto;
+    }
+    
+    .reveal img.img-full {
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .reveal img.img-float-left {
+      float: left;
+      margin: 0 20px 20px 0;
+    }
+    
+    .reveal img.img-float-right {
+      float: right;
+      margin: 0 0 20px 20px;
+    }
+    
+    /* Tables */
+    .reveal .tiptap-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    
+    .reveal .tiptap-table th,
+    .reveal .tiptap-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    
+    .reveal .tiptap-table th {
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .reveal .two-column-block,
+      .reveal .three-column-block,
+      .reveal .columns-2,
+      .reveal .columns-3 {
+        grid-template-columns: 1fr;
+      }
+      
+      .reveal img.img-float-left,
+      .reveal img.img-float-right {
+        float: none;
+        margin: 10px auto;
+        display: block;
+      }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -35,7 +162,11 @@
     <div class="presentation-container">
       <div class="presentation-wrapper">
         <div id="aspectRatioContainer" class="aspect-ratio-container">
-          <iframe id="presentationFrame" class="presentation-frame" src=""></iframe>
+          <div class="reveal">
+            <div class="slides" id="revealSlides">
+              <!-- Slides will be dynamically inserted here -->
+            </div>
+          </div>
         </div>
         
         <!-- Voice Controls -->
@@ -176,6 +307,11 @@
     <span class="narration-icon">🔊</span>
     <span id="narrationText">Sprachausgabe aktiv</span>
   </div>
+  
+  <!-- Reveal.js JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
   
   <script src="/assets/js/webinar.js?v=1768652225"></script>
 </body>

@@ -187,13 +187,13 @@ button:disabled {
   min-height: 0;
 }
 
-/* Legacy aspect ratio classes removed - format now adapts automatically */
-
-.presentation-frame {
+/* Reveal.js direct integration */
+.aspect-ratio-container .reveal {
   width: 100%;
   height: 100%;
-  border: none;
 }
+
+/* Legacy aspect ratio classes removed - format now adapts automatically */
 
 .presentation-controls {
   display: flex;

@@ -2,6 +2,7 @@ const express = require('express');
 const { Storage } = require('../utils/storage');
 const { sendResultEmail, sendAdminNotification } = require('../services/mail');
 const { logAudit } = require('../utils/logger');
+const { generateSlideHtml } = require('../renderer/slideRenderer');
 
 const router = express.Router();
 
@@ -66,6 +67,33 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Fehler beim Laden des Webinars' });
+  }
+});
+
+/**
+ * GET /api/webinar/:id/slides-html
+ * Get rendered slides HTML for direct reveal.js integration
+ */
+router.get('/:id/slides-html', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await webinarsStorage.read();
+    const webinar = data?.webinars?.find(w => w.id === id);
+    
+    if (!webinar) {
+      return res.status(404).json({ error: 'Webinar nicht gefunden' });
+    }
+    
+    // Generate HTML for all slides
+    const slides = webinar.slides || [];
+    const slidesHtml = slides.map(slide => generateSlideHtml(slide)).join('\n');
+    
+    res.json({
+      slidesHtml: slidesHtml
+    });
+  } catch (error) {
+    console.error('Error generating slides HTML:', error);
+    res.status(500).json({ error: 'Fehler beim Generieren der Slides' });
   }
 });
 

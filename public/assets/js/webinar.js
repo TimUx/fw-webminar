@@ -15,6 +15,7 @@ let speechErrorCount = 0;
 let narrationComplete = false;
 let slideMinimumTimePassed = false;
 let isMuted = false;
+let revealInstance = null; // Store Reveal.js instance
 
 // Load settings and webinars on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -97,15 +98,45 @@ async function loadWebinar(id) {
 }
 
 // Load presentation slides
-function loadPresentation() {
-  const iframe = document.getElementById('presentationFrame');
-  iframe.src = `/slides/${currentWebinar.id}/presentation.html`;
-  
-  currentSlideIndex = 0;
-  updateSlideCounter();
-  
-  // Wait for iframe to load
-  iframe.onload = () => {
+async function loadPresentation() {
+  try {
+    // Fetch slides HTML from API
+    const response = await fetch(`${API_BASE}/webinar/${currentWebinar.id}/slides-html`);
+    const data = await response.json();
+    
+    // Insert slides HTML into reveal container
+    const slidesContainer = document.getElementById('revealSlides');
+    slidesContainer.innerHTML = data.slidesHtml;
+    
+    // Initialize Reveal.js
+    if (!revealInstance) {
+      revealInstance = new Reveal({
+        hash: false,
+        slideNumber: false,
+        showSlideNumber: 'none',
+        center: true,
+        transition: 'slide',
+        plugins: [ RevealNotes, RevealHighlight ],
+        controls: false,  // Disable built-in controls, we use custom ones
+        keyboard: false,  // Disable keyboard navigation, we control it
+        touch: false,     // Disable touch navigation
+        progress: false   // Disable progress bar, we have custom one
+      });
+      
+      await revealInstance.initialize();
+      
+      // Listen to slide change events from Reveal.js
+      revealInstance.on('slidechanged', (event) => {
+        // Update our tracking when Reveal.js changes slides
+        currentSlideIndex = event.indexh;
+        updateSlideCounter();
+      });
+    } else {
+      // If already initialized, sync and rebuild
+      await revealInstance.sync();
+    }
+    
+    currentSlideIndex = 0;
     updateSlideCounter();
     
     // Start narration for first slide if not muted
@@ -114,10 +145,13 @@ function loadPresentation() {
         speakSlideNote(0);
       }
     }, 1000);
-  };
-  
-  // Show quiz button when all slides are viewed
-  document.getElementById('startQuizBtn').style.display = 'none';
+    
+    // Show quiz button when all slides are viewed
+    document.getElementById('startQuizBtn').style.display = 'none';
+  } catch (error) {
+    console.error('Error loading presentation:', error);
+    alert('Fehler beim Laden der Präsentation.');
+  }
 }
 
 // Navigation functions
@@ -127,16 +161,14 @@ function nextSlide() {
     return; // Don't advance if conditions not met
   }
   
-  const iframe = document.getElementById('presentationFrame');
   const totalSlides = currentWebinar.slides.length;
   
   if (currentSlideIndex < totalSlides - 1) {
     currentSlideIndex++;
     
-    try {
-      iframe.contentWindow.revealControl?.next();
-    } catch (e) {
-      console.error('Cannot control iframe:', e);
+    // Use Reveal.js API to navigate
+    if (revealInstance) {
+      revealInstance.next();
     }
     
     updateSlideCounter();
@@ -157,11 +189,9 @@ function previousSlide() {
   if (currentSlideIndex > 0) {
     currentSlideIndex--;
     
-    const iframe = document.getElementById('presentationFrame');
-    try {
-      iframe.contentWindow.revealControl?.prev();
-    } catch (e) {
-      console.error('Cannot control iframe:', e);
+    // Use Reveal.js API to navigate
+    if (revealInstance) {
+      revealInstance.prev();
     }
     
     updateSlideCounter();

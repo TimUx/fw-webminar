@@ -3,7 +3,7 @@
  * Converts TipTap JSON to Reveal.js HTML slides using generateHTML
  */
 
-const { generateHTML } = require('@tiptap/html');
+const { generateHTML } = require('@tiptap/html/server');
 const StarterKit = require('@tiptap/starter-kit').default;
 const Image = require('@tiptap/extension-image').default;
 const Link = require('@tiptap/extension-link').default;
