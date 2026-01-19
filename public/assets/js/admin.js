@@ -186,12 +186,23 @@ function insertColumns(quill, numColumns, editorContainer) {
  * @param {string} initialContent - Initial HTML content
  * @returns {Promise<Object>} Editor instance
  */
-async function createTipTapEditor(container, initialContent = '') {
-  // Find the textarea element
-  const textarea = container.querySelector('.slide-content');
+async function initializeTipTapEditor(container, initialContent = '') {
+  // Handle being called with either a container or a textarea directly
+  let textarea;
+  
+  if (container.tagName === 'TEXTAREA' && container.classList.contains('slide-content')) {
+    // Called directly with textarea (shouldn't happen, but handle it gracefully)
+    console.warn('[WARN] initializeTipTapEditor called with textarea instead of container - using parent');
+    textarea = container;
+    container = textarea.parentElement;
+  } else {
+    // Normal case: called with container, find textarea within it
+    textarea = container.querySelector('.slide-content');
+  }
   
   if (!textarea) {
     console.error('Textarea with class "slide-content" not found');
+    console.error('Container HTML:', container?.innerHTML);
     return null;
   }
   
@@ -592,10 +603,15 @@ async function addSlide(slide = null) {
   // Initialize TipTap editor for this slide's content
   const contentContainer = div.querySelector('.form-group:nth-child(3)');
   
+  if (!contentContainer) {
+    console.error('[BUG] contentContainer not found in slide!');
+    return;
+  }
+  
   // Pass TipTap JSON to editor
   const editorInitialContent = slide?.content || '';
   
-  const tiptapEditor = await createTipTapEditor(contentContainer, editorInitialContent);
+  const tiptapEditor = await initializeTipTapEditor(contentContainer, editorInitialContent);
   quillEditors.push(tiptapEditor);
   
   // Update all slide numbers after adding

@@ -416,12 +416,12 @@ h3 {
 
 .modal-content {
   background-color: white;
-  margin: 5% auto;
+  margin: 3% auto;
   padding: 30px;
   border-radius: 8px;
-  width: 90%;
-  max-width: 800px;
-  max-height: 80vh;
+  width: 95%;
+  max-width: 1200px;
+  max-height: 85vh;
   overflow-y: auto;
 }
 

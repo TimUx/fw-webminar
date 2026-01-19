@@ -1,12 +1,9 @@
 /**
  * TipTap Editor Bundle
  * Self-contained TipTap editor setup for fw-webminar
- * Uses CDN imports for all TipTap dependencies
+ * Uses bundled TipTap dependencies
  * Includes custom nodes for layout blocks (TwoColumnBlock, ThreeColumnBlock, HeroBlock)
  */
-
-// Import statements will be handled by browser ES modules
-// This file provides a wrapper for easy initialization
 
 /**
  * Initialize TipTap editor with all necessary extensions
@@ -16,19 +13,13 @@
  * @returns {Object} Editor instance with helper methods
  */
 window.createTipTapEditor = async function(element, initialContent = '', onUpdate = null) {
-  // Import TipTap modules from CDN
-  const { Editor, Node } = await import('https://esm.sh/@tiptap/core@2.1.13');
-  const StarterKit = (await import('https://esm.sh/@tiptap/starter-kit@2.1.13')).default;
-  const Image = (await import('https://esm.sh/@tiptap/extension-image@2.1.13')).default;
-  const Link = (await import('https://esm.sh/@tiptap/extension-link@2.1.13')).default;
-  const Table = (await import('https://esm.sh/@tiptap/extension-table@2.1.13')).default;
-  const TableRow = (await import('https://esm.sh/@tiptap/extension-table-row@2.1.13')).default;
-  const TableCell = (await import('https://esm.sh/@tiptap/extension-table-cell@2.1.13')).default;
-  const TableHeader = (await import('https://esm.sh/@tiptap/extension-table-header@2.1.13')).default;
-  const TextAlign = (await import('https://esm.sh/@tiptap/extension-text-align@2.1.13')).default;
-  const Underline = (await import('https://esm.sh/@tiptap/extension-underline@2.1.13')).default;
-  const Color = (await import('https://esm.sh/@tiptap/extension-color@2.1.13')).default;
-  const TextStyle = (await import('https://esm.sh/@tiptap/extension-text-style@2.1.13')).default;
+  // Wait for bundled TipTap to be available
+  if (!window.TipTapBundle) {
+    throw new Error('TipTap bundle not loaded. Make sure tiptap-bundled.js is included before this script.');
+  }
+  
+  // Get TipTap modules from bundled file
+  const { Editor, Node, StarterKit, Image, Link, Table, TableRow, TableCell, TableHeader, TextAlign, Underline, Color, TextStyle } = window.TipTapBundle;
   
   // Define custom nodes for layout blocks
   const Column = Node.create({

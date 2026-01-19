@@ -459,8 +459,10 @@
 
   <div id="notification" class="notification hidden"></div>
   
-  <!-- Load TipTap bundle (ES modules) before admin.js -->
-  <script type="module" src="/assets/lib/tiptap/tiptap-bundle.js"></script>
+  <!-- Load TipTap bundled dependencies first -->
+  <script src="/assets/lib/tiptap/tiptap-bundled.js"></script>
+  <!-- Load TipTap editor wrapper -->
+  <script src="/assets/lib/tiptap/tiptap-bundle.js"></script>
   <script src="/assets/js/admin.js?v=1768678035"></script>
 </body>
 </html>

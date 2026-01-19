@@ -38,6 +38,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/assets', express.static(path.join(__dirname, '../assets')));
 app.use('/slides', express.static(path.join(__dirname, '../slides')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/node_modules', express.static(path.join(__dirname, '../node_modules')));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API Routes
