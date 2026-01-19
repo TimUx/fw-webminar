@@ -25,7 +25,7 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
   const CustomImage = Image.extend({
     addAttributes() {
       return {
-        ...this.parent?.(),
+        ...(this.parent ? this.parent() : {}),
         class: {
           default: 'tiptap-image',
           parseHTML: element => element.getAttribute('class') || 'tiptap-image',
@@ -533,8 +533,9 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
     const pos = editor.view.posAtDOM(img, 0);
     if (pos === null || pos === undefined) return;
     
-    // Get current classes and update them
-    const currentClasses = img.className.split(' ').filter(c => c && !c.startsWith('img-'));
+    // Get current classes and remove old size classes only
+    const currentClasses = img.className.split(' ')
+      .filter(c => c && c !== 'img-small' && c !== 'img-medium' && c !== 'img-large' && c !== 'img-full');
     const newClasses = [...currentClasses, className].join(' ');
     
     // Update the image node in TipTap's document

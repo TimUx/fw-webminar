@@ -21,7 +21,7 @@ const { Node } = require('@tiptap/core');
 const CustomImage = Image.extend({
   addAttributes() {
     return {
-      ...this.parent?.(),
+      ...(this.parent ? this.parent() : {}),
       class: {
         default: 'tiptap-image',
         parseHTML: element => element.getAttribute('class') || 'tiptap-image',
