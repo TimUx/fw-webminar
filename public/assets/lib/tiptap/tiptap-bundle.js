@@ -244,6 +244,17 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       <button type="button" data-action="three-column-block" title="3-Spalten Layout" class="tiptap-btn">⬜⬜⬜</button>
       <button type="button" data-action="hero-block" title="Hero Slide (Großer Titel)" class="tiptap-btn">🎯</button>
     </div>
+    <div class="tiptap-toolbar-group tiptap-table-controls" style="display: none;">
+      <span class="tiptap-label">Tabelle:</span>
+      <button type="button" data-action="table-add-row-before" title="Zeile oben einfügen" class="tiptap-btn">⬆️+</button>
+      <button type="button" data-action="table-add-row-after" title="Zeile unten einfügen" class="tiptap-btn">⬇️+</button>
+      <button type="button" data-action="table-delete-row" title="Zeile löschen" class="tiptap-btn">⬆️✖</button>
+    </div>
+    <div class="tiptap-toolbar-group tiptap-table-controls" style="display: none;">
+      <button type="button" data-action="table-add-col-before" title="Spalte links einfügen" class="tiptap-btn">⬅️+</button>
+      <button type="button" data-action="table-add-col-after" title="Spalte rechts einfügen" class="tiptap-btn">➡️+</button>
+      <button type="button" data-action="table-delete-col" title="Spalte löschen" class="tiptap-btn">⬅️✖</button>
+    </div>
   `;
   
   // Create editor element
@@ -323,9 +334,13 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
   // Track selected image
   let selectedImage = null;
   
-  // Handle image selection
+  // Handle image and table selection
   editorElement.addEventListener('click', (e) => {
     const imageControls = toolbar.querySelectorAll('.tiptap-image-controls');
+    const tableControls = toolbar.querySelectorAll('.tiptap-table-controls');
+    
+    // Check if clicked on table cell
+    const clickedCell = e.target.closest('td, th');
     
     if (e.target.tagName === 'IMG') {
       // Deselect previous image
@@ -337,16 +352,29 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
       selectedImage = e.target;
       selectedImage.classList.add('tiptap-image-selected');
       
-      // Show image controls
+      // Show image controls, hide table controls
       imageControls.forEach(group => group.style.display = '');
-    } else {
-      // Clicked outside image
+      tableControls.forEach(group => group.style.display = 'none');
+    } else if (clickedCell) {
+      // Clicked inside a table
+      // Hide image controls if any
       if (selectedImage) {
         selectedImage.classList.remove('tiptap-image-selected');
         selectedImage = null;
       }
-      // Hide image controls
       imageControls.forEach(group => group.style.display = 'none');
+      
+      // Show table controls
+      tableControls.forEach(group => group.style.display = '');
+    } else {
+      // Clicked outside image and table
+      if (selectedImage) {
+        selectedImage.classList.remove('tiptap-image-selected');
+        selectedImage = null;
+      }
+      // Hide both image and table controls
+      imageControls.forEach(group => group.style.display = 'none');
+      tableControls.forEach(group => group.style.display = 'none');
     }
   });
   
@@ -442,6 +470,42 @@ window.createTipTapEditor = async function(element, initialContent = '', onUpdat
         editor.chain().focus().insertHeroBlock().run();
         if (window.showNotification) {
           window.showNotification('Hero Slide eingefügt');
+        }
+        break;
+      case 'table-add-row-before':
+        editor.chain().focus().addRowBefore().run();
+        if (window.showNotification) {
+          window.showNotification('Zeile oberhalb eingefügt');
+        }
+        break;
+      case 'table-add-row-after':
+        editor.chain().focus().addRowAfter().run();
+        if (window.showNotification) {
+          window.showNotification('Zeile unterhalb eingefügt');
+        }
+        break;
+      case 'table-delete-row':
+        editor.chain().focus().deleteRow().run();
+        if (window.showNotification) {
+          window.showNotification('Zeile gelöscht');
+        }
+        break;
+      case 'table-add-col-before':
+        editor.chain().focus().addColumnBefore().run();
+        if (window.showNotification) {
+          window.showNotification('Spalte links eingefügt');
+        }
+        break;
+      case 'table-add-col-after':
+        editor.chain().focus().addColumnAfter().run();
+        if (window.showNotification) {
+          window.showNotification('Spalte rechts eingefügt');
+        }
+        break;
+      case 'table-delete-col':
+        editor.chain().focus().deleteColumn().run();
+        if (window.showNotification) {
+          window.showNotification('Spalte gelöscht');
         }
         break;
     }
