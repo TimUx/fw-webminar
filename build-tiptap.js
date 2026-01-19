@@ -12,6 +12,9 @@ esbuild.build({
   target: ['es2020'],
   minify: false,
   sourcemap: true,
+  footer: {
+    js: 'window.TipTapBundle = TipTapBundle;'
+  }
 }).then(() => {
   console.log('✅ TipTap bundle created successfully');
 }).catch((error) => {

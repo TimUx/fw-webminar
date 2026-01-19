@@ -25710,4 +25710,5 @@ ${nextLine.slice(indentLevel + 2)}`;
   }
   return __toCommonJS(tiptap_entry_exports);
 })();
+window.TipTapBundle = TipTapBundle;
 //# sourceMappingURL=tiptap-bundled.js.map
