@@ -15,8 +15,8 @@
 .tiptap-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
-  padding: 6px 8px;
+  gap: 2px;
+  padding: 4px 6px;
   background: #f8f8f8;
   border-bottom: 1px solid #ccc;
   align-items: center;
@@ -25,7 +25,7 @@
 .tiptap-toolbar-group {
   display: flex;
   gap: 2px;
-  padding: 0 4px;
+  padding: 0 3px;
   border-right: 1px solid #ddd;
   align-items: center;
 }
@@ -35,22 +35,22 @@
 }
 
 .tiptap-label {
-  font-size: 11px;
+  font-size: 10px;
   color: #666;
-  margin-right: 4px;
+  margin-right: 3px;
   font-weight: 500;
 }
 
 .tiptap-btn {
-  padding: 4px 8px;
-  border: 1px solid #aaa;
+  padding: 3px 6px;
+  border: 1px solid #888;
   background: white;
   border-radius: 3px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   transition: all 0.2s;
-  min-width: 28px;
-  height: 28px;
+  min-width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

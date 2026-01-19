@@ -186,13 +186,13 @@ function insertColumns(quill, numColumns, editorContainer) {
  * @param {string} initialContent - Initial HTML content
  * @returns {Promise<Object>} Editor instance
  */
-async function createTipTapEditor(container, initialContent = '') {
+async function initializeTipTapEditor(container, initialContent = '') {
   // Handle being called with either a container or a textarea directly
   let textarea;
   
   if (container.tagName === 'TEXTAREA' && container.classList.contains('slide-content')) {
     // Called directly with textarea (shouldn't happen, but handle it gracefully)
-    console.warn('[WARN] createTipTapEditor called with textarea instead of container - using parent');
+    console.warn('[WARN] initializeTipTapEditor called with textarea instead of container - using parent');
     textarea = container;
     container = textarea.parentElement;
   } else {
@@ -611,7 +611,7 @@ async function addSlide(slide = null) {
   // Pass TipTap JSON to editor
   const editorInitialContent = slide?.content || '';
   
-  const tiptapEditor = await createTipTapEditor(contentContainer, editorInitialContent);
+  const tiptapEditor = await initializeTipTapEditor(contentContainer, editorInitialContent);
   quillEditors.push(tiptapEditor);
   
   // Update all slide numbers after adding
