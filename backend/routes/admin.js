@@ -9,6 +9,7 @@ const { logAudit } = require('../utils/logger');
 const { sendTestEmail } = require('../services/mail');
 const { generateSimpleSlides } = require('../services/pptx');
 const { analyzePresentation, progressTracker, SSE_POLL_INTERVAL } = require('../services/slideAnalyzer');
+const { authenticateUser, setAdminPassword } = require('../utils/auth');
 
 const router = express.Router();
 
@@ -177,6 +178,41 @@ router.post('/settings/logo', upload.single('logo'), async (req, res) => {
     res.json({ logoPath, settings });
   } catch (error) {
     res.status(500).json({ error: 'Fehler beim Hochladen des Logos' });
+  }
+});
+
+/**
+ * PUT /api/admin/password
+ * Change admin password
+ */
+router.put('/password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Aktuelles und neues Passwort erforderlich' });
+    }
+    
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Neues Passwort muss mindestens 8 Zeichen lang sein' });
+    }
+    
+    // Verify current password
+    const user = await authenticateUser(req.user.username, currentPassword);
+    
+    if (!user) {
+      logAudit('PASSWORD_CHANGE_FAILED', req.user.username, 'Falsches aktuelles Passwort');
+      return res.status(401).json({ error: 'Aktuelles Passwort ist falsch' });
+    }
+    
+    // Set new password
+    await setAdminPassword(newPassword);
+    
+    logAudit('PASSWORD_CHANGE', req.user.username, 'Passwort erfolgreich geändert');
+    res.json({ message: 'Passwort erfolgreich geändert' });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Fehler beim Ändern des Passworts' });
   }
 });
 
