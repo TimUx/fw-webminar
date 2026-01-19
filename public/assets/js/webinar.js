@@ -319,9 +319,11 @@ function selectBestGermanVoice() {
   
   // Try to find a preferred voice
   for (const preferredName of preferredVoiceNames) {
-    const voice = germanVoices.find(v => 
-      v.name.includes(preferredName) || v.name.toLowerCase().includes(preferredName.toLowerCase())
-    );
+    const preferredNameLower = preferredName.toLowerCase();
+    const voice = germanVoices.find(v => {
+      const voiceNameLower = v.name.toLowerCase();
+      return v.name.includes(preferredName) || voiceNameLower.includes(preferredNameLower);
+    });
     if (voice) {
       selectedVoice = voice;
       console.log('Selected voice:', voice.name, '(', voice.lang, ')');
@@ -393,7 +395,7 @@ function showBrowserRecommendation() {
           <p>Für die beste Sprachausgabe empfehlen wir die Verwendung von <strong>Google Chrome</strong> oder <strong>Microsoft Edge</strong>. 
           Diese Browser bieten hochwertigere deutsche Stimmen als andere Browser.</p>
         </div>
-        <button class="notice-close" onclick="closeBrowserRecommendation()">×</button>
+        <button class="notice-close">×</button>
       </div>
     `;
     
@@ -401,6 +403,12 @@ function showBrowserRecommendation() {
     const voiceControls = document.querySelector('.voice-controls');
     if (voiceControls) {
       voiceControls.parentNode.insertBefore(notice, voiceControls.nextSibling);
+    }
+    
+    // Add event listener for close button (better than inline onclick)
+    const closeButton = notice.querySelector('.notice-close');
+    if (closeButton) {
+      closeButton.addEventListener('click', closeBrowserRecommendation);
     }
   }
   
