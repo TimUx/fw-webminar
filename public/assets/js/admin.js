@@ -311,6 +311,43 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
   }
 });
 
+// Password change form handler
+document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  try {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validate password match
+    if (newPassword !== confirmPassword) {
+      showNotification('Die neuen Passwörter stimmen nicht überein', true);
+      return;
+    }
+    
+    // Validate password length
+    if (newPassword.length < 8) {
+      showNotification('Das neue Passwort muss mindestens 8 Zeichen lang sein', true);
+      return;
+    }
+    
+    await apiCall('/admin/password', {
+      method: 'PUT',
+      body: { currentPassword, newPassword }
+    });
+    
+    showNotification('Passwort erfolgreich geändert');
+    
+    // Clear form
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+  } catch (error) {
+    showNotification('Fehler: ' + error.message, true);
+  }
+});
+
 // ============ SMTP ============
 
 async function loadSMTP() {
