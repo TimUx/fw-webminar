@@ -14,7 +14,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Trust proxy when behind reverse proxy (Caddy)
-app.set('trust proxy', true);
+// Set to 1 to trust only the first proxy (Caddy)
+app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet({
@@ -26,7 +27,9 @@ app.use(cors());
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Zu viele Anfragen von dieser IP-Adresse. Bitte versuchen Sie es später erneut.'
+  message: 'Zu viele Anfragen von dieser IP-Adresse. Bitte versuchen Sie es später erneut.',
+  // Explicitly trust proxy when using rate limiting
+  validate: { trustProxy: false }
 });
 app.use('/api/', limiter);
 

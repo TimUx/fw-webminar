@@ -16,11 +16,10 @@ async function createTransporter() {
   const port = config.port || 587;
   const secure = config.secure || false;
   
-  return nodemailer.createTransport({
+  const transportConfig = {
     host: config.host,
     port: port,
     secure: secure,
-    requireTLS: !secure, // Use STARTTLS when not using direct SSL
     auth: {
       user: config.username,
       pass: config.password
@@ -31,7 +30,15 @@ async function createTransporter() {
       rejectUnauthorized: config.rejectUnauthorized ?? true,
       minVersion: 'TLSv1.2'
     }
-  });
+  };
+  
+  // Only set requireTLS for non-secure connections (STARTTLS)
+  // Secure connections (port 465) use implicit TLS and don't need STARTTLS
+  if (!secure) {
+    transportConfig.requireTLS = true;
+  }
+  
+  return nodemailer.createTransport(transportConfig);
 }
 
 /**
