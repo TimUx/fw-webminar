@@ -13,13 +13,22 @@ async function createTransporter() {
     throw new Error('SMTP ist nicht konfiguriert');
   }
 
+  const port = config.port || 587;
+  const secure = config.secure || false;
+  
   return nodemailer.createTransport({
     host: config.host,
-    port: config.port || 587,
-    secure: config.secure || false,
+    port: port,
+    secure: secure,
+    requireTLS: !secure, // Use STARTTLS when not using direct SSL
     auth: {
       user: config.username,
       pass: config.password
+    },
+    tls: {
+      // Allow self-signed certificates and provide better compatibility
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2'
     }
   });
 }
