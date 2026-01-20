@@ -28,7 +28,7 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: 'Zu viele Anfragen von dieser IP-Adresse. Bitte versuchen Sie es später erneut.',
-  // Explicitly trust proxy when using rate limiting
+  // Disable strict trust proxy validation - we handle proxy trust via app.set('trust proxy', 1)
   validate: { trustProxy: false }
 });
 app.use('/api/', limiter);

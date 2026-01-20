@@ -35,7 +35,7 @@ async function createTransporter() {
   // Only set requireTLS for non-secure connections (STARTTLS)
   // Secure connections (port 465) use implicit TLS and don't need STARTTLS
   if (!secure) {
-    transportConfig.requireTLS = true;
+    transportConfig.requireTLS = true; // Enable STARTTLS for non-secure ports (e.g., 587)
   }
   
   return nodemailer.createTransport(transportConfig);
